@@ -5,7 +5,24 @@ import AppError from '../utils/AppError.js';
 
 const { User } = db;
 
+/**
+ * Service untuk mengelola logika autentikasi (Registrasi, Login, Profil).
+ */
 class AuthService {
+  /**
+   * Mendaftarkan pengguna baru ke sistem.
+   * @param {Object} userData - Data pengguna yang akan didaftarkan.
+   * @param {string} userData.username - Username baru.
+   * @param {string} userData.nama_lengkap - Nama lengkap pengguna.
+   * @param {string} [userData.phone] - Nomor telepon (opsional).
+   * @param {string} userData.password - Password (akan di-hash).
+   * @param {string} [userData.nis] - Nomor Induk Siswa (opsional).
+   * @param {string} [userData.email] - Alamat email (opsional).
+   * @param {string} [userData.class] - Kelas siswa (opsional).
+   * @param {string} [userData.role='user'] - Peran pengguna (admin/user).
+   * @returns {Promise<Object>} Berisi objek user dan token JWT.
+   * @throws {AppError} Jika username, email, atau NIS sudah terdaftar.
+   */
   static async register({ username, nama_lengkap, phone, password, nis, email, class: userClass, role }) {
     const existingUsername = await User.findOne({ where: { username } });
     if (existingUsername) {
@@ -60,6 +77,13 @@ class AuthService {
     };
   }
 
+  /**
+   * Melakukan proses login pengguna.
+   * @param {string} username - Username pengguna.
+   * @param {string} password - Password mentah.
+   * @returns {Promise<Object>} Berisi objek user dan token JWT.
+   * @throws {AppError} Jika akun tidak ditemukan, tidak aktif, atau password salah.
+   */
   static async login(username, password) {
     if (!process.env.JWT_SECRET) {
       throw new AppError('Konfigurasi server tidak valid', 500);
@@ -99,6 +123,11 @@ class AuthService {
     };
   }
 
+  /**
+   * Mengembalikan filter data profil dari objek user.
+   * @param {Object} user - Objek user dari database atau request.
+   * @returns {Object} Data profil yang aman untuk dikirim ke client.
+   */
   static getProfile(user) {
     return {
       id: user.id,
@@ -111,6 +140,13 @@ class AuthService {
     };
   }
 
+  /**
+   * Mengubah status berjaga (duty status) seorang admin.
+   * @param {Object} admin - Objek admin yang akan diubah statusnya.
+   * @param {number} admin.id - ID admin.
+   * @param {boolean} admin.is_on_duty - Status berjaga saat ini.
+   * @returns {Promise<Object>} Status berjaga yang baru.
+   */
   static async toggleDutyStatus(admin) {
     const newStatus = !admin.is_on_duty;
     await User.update(
@@ -120,6 +156,10 @@ class AuthService {
     return { is_on_duty: newStatus };
   }
 
+  /**
+   * Memeriksa apakah ada admin yang sedang aktif berjaga.
+   * @returns {Promise<Object>} Berisi boolean admin_on_duty.
+   */
   static async checkDuty() {
     const count = await User.count({
       where: { role: 'admin', is_on_duty: true, status: 'active' },

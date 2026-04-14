@@ -5,6 +5,10 @@ import fs from 'fs';
 
 const { Buku, Kategori, Transaksi } = db;
 
+/**
+ * Menghapus file sampul lama dari penyimpanan fisik jika bukan file default.
+ * @param {string} sampulFileName - Nama file sampul yang akan dihapus.
+ */
 function deleteOldCover(sampulFileName) {
   if (sampulFileName && sampulFileName !== 'default.jpg') {
     const coverPath = path.resolve('public/uploads/covers', sampulFileName);
@@ -14,7 +18,20 @@ function deleteOldCover(sampulFileName) {
   }
 }
 
+/**
+ * Service untuk mengelola data perbukuan (CRUD, Pencarian).
+ */
 class BukuService {
+  /**
+   * Mengambil semua daftar buku dengan berbagai filter.
+   * @param {Object} [options] - Objek filter.
+   * @param {string} [options.search] - Kata kunci pencarian (judul, pengarang, isbn).
+   * @param {number} [options.kategori] - ID Kategori buku.
+   * @param {number} [options.limit] - Batas jumlah data per halaman.
+   * @param {number} [options.offset] - Titik awal data.
+   * @param {string} [options.availableOnly] - Jika 'true', hanya tampilkan buku dengan stok > 0.
+   * @returns {Promise<Object>} Berisi array data buku dan total item.
+   */
   static async getAll({ search, kategori, limit, offset, availableOnly } = {}) {
     const { Op } = db.Sequelize;
     const where = {};
@@ -46,6 +63,12 @@ class BukuService {
     return { data: result.rows, totalItems: result.count };
   }
 
+  /**
+   * Mengambil detail satu buku berdasarkan ID.
+   * @param {number} id - ID Buku.
+   * @returns {Promise<Object>} Objek detail buku.
+   * @throws {AppError} Jika buku tidak ditemukan.
+   */
   static async getById(id) {
     const buku = await Buku.findByPk(id, {
       include: [{ model: Kategori, as: 'kategori', attributes: ['id', 'nama'] }],
@@ -56,6 +79,12 @@ class BukuService {
     return buku;
   }
 
+  /**
+   * Menambahkan data buku baru ke perpustakaan.
+   * @param {Object} data - Data buku lengkap.
+   * @returns {Promise<Object>} Buku yang baru dibuat.
+   * @throws {AppError} Jika kategori tidak valid atau judul sudah ada.
+   */
   static async create(data) {
     const kategori = await Kategori.findByPk(data.kategori_id);
     const existing = await Buku.findOne({ where: { judul: data.judul} });
@@ -69,6 +98,13 @@ class BukuService {
     return Buku.create(data);
   }
 
+  /**
+   * Memperbarui informasi buku.
+   * @param {number} id - ID Buku yang akan diupdate.
+   * @param {Object} data - Objek berisi kolom yang ingin diperbarui.
+   * @returns {Promise<Object>} Objek buku setelah diperbarui.
+   * @throws {AppError} Jika buku/kategori tidak ditemukan atau judul duplikat.
+   */
   static async update(id, data) {
     const buku = await Buku.findByPk(id);
     if (!buku) {
@@ -97,6 +133,11 @@ class BukuService {
     return buku;
   }
 
+  /**
+   * Menghapus buku dari sistem dengan validasi integritas data.
+   * @param {number} id - ID Buku yang akan dihapus.
+   * @throws {AppError} Jika buku tidak ditemukan atau memiliki riwayat transaksi/transaksi aktif.
+   */
   static async delete(id) {
     const buku = await Buku.findByPk(id);
     if (!buku) {

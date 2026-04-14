@@ -6,7 +6,21 @@ import { refreshSettings } from '../utils/settingsCache.js';
 
 const { User, Transaksi, Settings } = db;
 
+/**
+ * Service untuk mengelola data user (CRUD, Bulk Import, Sync Kelas).
+ */
 class UserService {
+  /**
+   * Mengambil semua daftar user dengan berbagai filter pencarian.
+   * @param {Object} [options] - Objek filter.
+   * @param {string} [options.search] - Kata kunci pencarian (nama, username, NIS, email).
+   * @param {string} [options.role] - Peran user (admin/user).
+   * @param {string} [options.status] - Status akun (active/inactive).
+   * @param {string} [options.class] - Kelas siswa.
+   * @param {number} [options.limit] - Batas jumlah data.
+   * @param {number} [options.offset] - Titik awal data (pagination).
+   * @returns {Promise<Object>} Berisi array data user dan total data.
+   */
   static async getAll({ search, role, status, class: userClass, limit, offset } = {}) {
     const whereClause = {};
     if (userClass) whereClause.class = userClass;
@@ -33,6 +47,12 @@ class UserService {
     return { data: users.rows, totalItems: users.count };
   }
 
+  /**
+   * Mengambil satu data user berdasarkan ID.
+   * @param {number} id - ID User.
+   * @returns {Promise<Object>} Objek data user (tanpa password).
+   * @throws {AppError} Jika user tidak ditemukan.
+   */
   static async getById(id) {
     const user = await User.findByPk(id, { attributes: { exclude: ['password'] } });
     if (!user) {
@@ -41,6 +61,12 @@ class UserService {
     return user;
   }
 
+  /**
+   * Membuat user baru di sistem.
+   * @param {Object} userData - Data lengkap user.
+   * @returns {Promise<Object>} Data user yang berhasil dibuat.
+   * @throws {AppError} Jika username, email, atau NIS sudah digunakan.
+   */
   static async create({ username, password, nama_lengkap, nis, email, phone, role, status, class: userClass }) {
     const existingUsername = await User.findOne({ where: { username } });
     if (existingUsername) {
@@ -81,6 +107,13 @@ class UserService {
     return userData;
   }
 
+  /**
+   * Memperbarui data user yang sudah ada.
+   * @param {number} id - ID User yang diupdate.
+   * @param {Object} updateData - Data baru.
+   * @returns {Promise<Object>} Data user setelah diperbarui.
+   * @throws {AppError} Jika user tidak ditemukan atau kredensial duplikat.
+   */
   static async update(id, { username, nama_lengkap, nis, email, phone, role, status, password, class: userClass }) {
     const user = await User.findByPk(id);
     if (!user) {
@@ -123,6 +156,12 @@ class UserService {
     return userData;
   }
 
+  /**
+   * Menghapus user dari sistem dengan validasi transaksi aktif.
+   * @param {number} id - ID User yang dihapus.
+   * @param {number} [requesterId] - ID User yang melakukan aksi hapus (untuk cegah hapus diri sendiri).
+   * @throws {AppError} Jika user tidak ditemukan atau masih memiliki transaksi aktif.
+   */
   static async delete(id, requesterId) {
     const user = await User.findByPk(id);
     if (!user) {
@@ -148,6 +187,12 @@ class UserService {
     await user.destroy();
   }
 
+  /**
+   * Mengimpor banyak data user sekaligus dan menyinkronkan daftar kelas ke pengaturan.
+   * @param {Object[]} usersData - Array objek data user.
+   * @returns {Promise<Object>} Hasil jumlah yang berhasil diimpor dan daftar error jika ada.
+   * @throws {AppError} Jika tidak ada data valid untuk diimpor.
+   */
   static async bulkCreate(usersData) {
     if (!usersData || !Array.isArray(usersData) || usersData.length === 0) {
       throw new AppError('Data user tidak valid atau kosong', 400);

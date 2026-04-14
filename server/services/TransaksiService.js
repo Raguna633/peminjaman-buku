@@ -11,17 +11,33 @@ const VALID_KONDISI_BUKU = new Set([
   'baik', 'rusak_ringan', 'rusak_sedang', 'rusak_parah', 'hilang',
 ]);
 
+/**
+ * Menambahkan jumlah hari ke suatu tanggal.
+ * @param {Date|string} date - Tanggal awal.
+ * @param {number} days - Jumlah hari yang ingin ditambahkan.
+ * @returns {Date} Tanggal hasil penambahan.
+ */
 export function addDays(date, days) {
   const next = new Date(date);
   next.setDate(next.getDate() + days);
   return next;
 }
 
+/**
+ * Mengonversi input ke objek Date hanya dengan informasi tanggal (waktu di-reset ke 00:00:00).
+ * @param {Date|string} input - Input tanggal.
+ * @returns {Date} Objek Date yang hanya berisi tanggal.
+ */
 export function toDateOnly(input) {
   const d = new Date(input);
   return new Date(d.getFullYear(), d.getMonth(), d.getDate());
 }
 
+/**
+ * Memformat objek Date menjadi string format YYYY-MM-DD.
+ * @param {Date|string} date - Input tanggal.
+ * @returns {string} String format YYYY-MM-DD.
+ */
 export function formatDateYMD(date) {
   const d = toDateOnly(date);
   const yyyy = d.getFullYear();
@@ -30,6 +46,13 @@ export function formatDateYMD(date) {
   return `${yyyy}-${mm}-${dd}`;
 }
 
+/**
+ * Menghitung besar denda keterlambatan berdasarkan pengaturan sistem.
+ * @param {Date} tanggalJatuhTempo - Batas akhir peminjaman.
+ * @param {Date} tanggalKembali - Tanggal pengembalian buku.
+ * @param {Object} settings - Pengaturan sistem (denda_type, denda_per_day_amount, excluded_denda_dates).
+ * @returns {number} Total denda keterlambatan.
+ */
 export function calculateFine(tanggalJatuhTempo, tanggalKembali, settings) {
   if (!tanggalJatuhTempo || !tanggalKembali) return 0;
   const dueDate = toDateOnly(tanggalJatuhTempo);
@@ -52,6 +75,13 @@ export function calculateFine(tanggalJatuhTempo, tanggalKembali, settings) {
   return count * (settings.denda_per_day_amount || 0);
 }
 
+/**
+ * Menghitung jumlah hari keterlambatan dengan mengecualikan tanggal-tanggal tertentu.
+ * @param {Date} tanggalJatuhTempo - Batas akhir peminjaman.
+ * @param {Date} tanggalKembali - Tanggal pengembalian buku.
+ * @param {string[]} excludedDatesArray - Daftar tanggal pengecualian denda (YYYY-MM-DD).
+ * @returns {number} Jumlah hari terlambat.
+ */
 export function calculateLateDays(tanggalJatuhTempo, tanggalKembali, excludedDatesArray) {
   if (!tanggalJatuhTempo || !tanggalKembali) return 0;
   const dueDate = toDateOnly(tanggalJatuhTempo);
@@ -73,6 +103,12 @@ export function calculateLateDays(tanggalJatuhTempo, tanggalKembali, excludedDat
   return count;
 }
 
+/**
+ * Menghitung denda berdasarkan kondisi kerusakan buku.
+ * @param {string} kondisiBuku - Kondisi saat kembali (rusak_ringan, rusak_sedang, rusak_parah, hilang).
+ * @param {Object} settings - Pengaturan sistem untuk nilai denda kerusakan.
+ * @returns {number} Besar denda kerusakan.
+ */
 export function calculateDamageFine(kondisiBuku, settings) {
   switch (kondisiBuku) {
     case 'rusak_ringan': return settings.denda_kerusakan_ringan || 0;
@@ -100,8 +136,21 @@ async function hasAdminPresence() {
 
 // ── Service ───────────────────────────────────────────────────
 
+/**
+ * Service utama untuk mengelola siklus hidup transaksi peminjaman.
+ */
 class TransaksiService {
 
+  /**
+   * Mengambil semua daftar transaksi dengan filter.
+   * @param {Object} [options] - Objek filter.
+   * @param {string} [options.status] - Filter berdasarkan status transaksi.
+   * @param {number} [options.user_id] - Filter berdasarkan ID user peminjam.
+   * @param {number} [options.limit] - Batas jumlah data.
+   * @param {number} [options.offset] - Titik awal data.
+   * @param {string} [options.search] - Kata kunci pencarian (judul buku, nama/NIS user).
+   * @returns {Promise<Object>} Berisi array transaksi dan total item.
+   */
   static async getAll({ status, user_id, limit, offset, search } = {}) {
     const where = {};
     if (status) where.status = status;
@@ -128,6 +177,14 @@ class TransaksiService {
     return { data: result.rows, totalItems: result.count };
   }
 
+  /**
+   * Mengambil detail transaksi berdasarkan ID dengan pengecekan otorisasi.
+   * @param {number} id - ID Transaksi.
+   * @param {number} userId - ID User yang merequest.
+   * @param {string} role - Peran user (admin/user).
+   * @returns {Promise<Object>} Objek transaksi lengkap.
+   * @throws {AppError} Jika transaksi tidak ditemukan atau tidak diperbolehkan akses.
+   */
   static async getById(id, userId, role) {
     const transaksi = await Transaksi.findByPk(id, {
       include: [
@@ -143,6 +200,12 @@ class TransaksiService {
     return transaksi;
   }
 
+  /**
+   * Mengambil riwayat transaksi milik user tertentu.
+   * @param {number} userId - ID User.
+   * @param {Object} [options] - Filter tambahan (status, limit, offset, search).
+   * @returns {Promise<Object>} Berisi array transaksi user.
+   */
   static async getByUser(userId, { status, limit, offset, search } = {}) {
     const where = { user_id: userId };
     if (status && status !== 'all') where.status = status;
@@ -162,6 +225,13 @@ class TransaksiService {
 
   // ── Peminjaman ─────────────────────────────────────────────
 
+  /**
+   * Mengajukan permohonan peminjaman buku oleh user.
+   * @param {Object} user - Objek user yang meminjam.
+   * @param {number} bukuId - ID Buku yang ingin dipinjam.
+   * @returns {Promise<Object>} Berisi detail transaksi, buku, dan user.
+   * @throws {AppError} Jika admin tidak standby, stok habis, atau limit pinjam tercapai.
+   */
   static async requestPeminjaman(user, bukuId) {
     const adminOnDuty = await hasAdminPresence();
     if (!adminOnDuty) throw new AppError('Tidak ada admin berjaga saat ini. Silakan coba lagi nanti.', 400);
@@ -237,6 +307,13 @@ class TransaksiService {
     }
   }
 
+  /**
+   * Menyetujui permohonan peminjaman oleh admin.
+   * @param {number} transaksiId - ID Transaksi yang akan disetujui.
+   * @param {Object} admin - Objek admin yang menyetujui.
+   * @returns {Promise<Object>} Berisi detail transaksi dan tanggal jatuh tempo.
+   * @throws {AppError} Jika stok tiba-tiba habis atau transaksi sudah diproses.
+   */
   static async approvePeminjaman(transaksiId, admin) {
     const settings = getCachedSettings();
     const transaction = await db.sequelize.transaction({
@@ -290,6 +367,12 @@ class TransaksiService {
     }
   }
 
+  /**
+   * Menolak permohonan peminjaman oleh admin.
+   * @param {number} transaksiId - ID Transaksi yang ditolak.
+   * @param {string} [reason] - Alasan penolakan.
+   * @returns {Promise<Object>} Status transaksi setelah ditolak.
+   */
   static async rejectPeminjaman(transaksiId, reason) {
     const finalReason = reason || 'Ditolak oleh admin tanpa alasan spesifik';
     const transaction = await db.sequelize.transaction({
@@ -327,6 +410,12 @@ class TransaksiService {
     }
   }
 
+  /**
+   * Menyetujui banyak permohonan peminjaman sekaligus.
+   * @param {number[]} transaksiIds - Array ID Transaksi.
+   * @param {Object} admin - Objek admin yang memproses.
+   * @returns {Promise<Object>} Hasil sukses dan gagal per ID.
+   */
   static async bulkApprovePeminjaman(transaksiIds, admin) {
     if (!Array.isArray(transaksiIds) || transaksiIds.length === 0) {
       throw new AppError('transaksi_ids harus berupa array dan tidak boleh kosong', 400);
@@ -384,6 +473,12 @@ class TransaksiService {
 
   // ── Pengembalian ───────────────────────────────────────────
 
+  /**
+   * Mengajukan pengembalian buku oleh user.
+   * @param {Object} user - Objek user peminjam.
+   * @param {number} transaksiId - ID Transaksi yang akan dikembalikan.
+   * @returns {Promise<Object>} Objek transaksi terbaru.
+   */
   static async requestPengembalian(user, transaksiId) {
     const adminOnDuty = await hasAdminPresence();
     if (!adminOnDuty) throw new AppError('Tidak ada admin berjaga saat ini. Silakan coba lagi nanti.', 400);
@@ -420,6 +515,13 @@ class TransaksiService {
     }
   }
 
+  /**
+   * Menghitung estimasi denda sebelum admin melakukan approval pengembalian.
+   * @param {number} transaksiId - ID Transaksi.
+   * @param {string} kondisiBuku - Kondisi fisik buku saat dikembalikan.
+   * @param {string[]} [excludedDatesOverride] - Override tanggal libur jika diperlukan.
+   * @returns {Promise<Object>} Rincian kalkulasi denda.
+   */
   static async calculateFinePreview(transaksiId, kondisiBuku, excludedDatesOverride) {
     if (!VALID_KONDISI_BUKU.has(kondisiBuku)) throw new AppError('Kondisi buku tidak valid', 400);
 
@@ -462,6 +564,14 @@ class TransaksiService {
     };
   }
 
+  /**
+   * Mengetujui pengembalian buku oleh admin dan mencatat denda.
+   * @param {number} transaksiId - ID Transaksi.
+   * @param {Object} admin - Objek admin yang memproses.
+   * @param {string} kondisiBuku - Kondisi buku (baik/rusak/hilang).
+   * @param {string[]} [excludedDatesOverride] - Daftar tanggal libur denda.
+   * @returns {Promise<Object>} Hasil akhir transaksi pengembalian.
+   */
   static async approvePengembalian(transaksiId, admin, kondisiBuku, excludedDatesOverride) {
     if (!VALID_KONDISI_BUKU.has(kondisiBuku)) throw new AppError('Kondisi buku tidak valid', 400);
 
@@ -524,6 +634,12 @@ class TransaksiService {
     }
   }
 
+  /**
+   * Menolak permohonan pengembalian (misal: buku belum diterima fisik).
+   * @param {number} transaksiId - ID Transaksi.
+   * @param {string} [reason] - Alasan penolakan.
+   * @returns {Promise<Object>} Status transaksi yang dikembalikan ke semula.
+   */
   static async rejectPengembalian(transaksiId, reason) {
     const finalReason = reason || 'Pengembalian ditolak oleh admin';
     const transaction = await db.sequelize.transaction({
@@ -564,6 +680,13 @@ class TransaksiService {
 
   // ── Payment ────────────────────────────────────────────────
 
+  /**
+   * Memproses pembayaran denda untuk satu transaksi.
+   * @param {number} transaksiId - ID Transaksi.
+   * @param {number} jumlahBayar - Nominal uang yang dibayarkan.
+   * @returns {Promise<Object>} Rincian sisa denda dan kembalian.
+   * @throws {AppError} Jika status transaksi tidak valid untuk pembayaran.
+   */
   static async processPayment(transaksiId, jumlahBayar) {
     if (jumlahBayar < 0) throw new AppError('Jumlah bayar tidak valid', 400);
 
@@ -630,6 +753,13 @@ class TransaksiService {
     }
   }
 
+  /**
+   * Memproses pembayaran denda untuk banyak transaksi sekaligus (Bulk).
+   * @param {number[]} transaksiIds - Array ID Transaksi.
+   * @param {number} jumlahBayar - Total nominal uang.
+   * @param {number} userId - ID User peminjam.
+   * @returns {Promise<Object>} Rekap pembayaran per transaksi.
+   */
   static async bulkProcessPayment(transaksiIds, jumlahBayar, userId) {
     if (jumlahBayar < 0 || !transaksiIds || transaksiIds.length === 0 || transaksiIds.length > 20) {
       throw new AppError('Input tidak valid (Maksimal 20 transaksi)', 400);
@@ -696,6 +826,13 @@ class TransaksiService {
 
   // ── Perpanjangan ───────────────────────────────────────────
 
+  /**
+   * Mengajukan permohonan perpanjangan masa pinjam oleh user.
+   * @param {Object} user - Objek user peminjam.
+   * @param {number} transaksiId - ID Transaksi.
+   * @returns {Promise<Object>} Detail transaksi setelah request perpanjangan.
+   * @throws {AppError} Jika melewati jatuh tempo atau limit perpanjangan habis.
+   */
   static async requestPerpanjangan(user, transaksiId) {
     const adminOnDuty = await hasAdminPresence();
     if (!adminOnDuty) throw new AppError('Tidak ada admin berjaga saat ini. Silakan coba lagi nanti.', 400);
@@ -763,6 +900,12 @@ class TransaksiService {
     }
   }
 
+  /**
+   * Menyetujui perpanjangan masa pinjam oleh admin.
+   * @param {number} transaksiId - ID Transaksi.
+   * @param {Object} admin - Objek admin yang memproses.
+   * @returns {Promise<Object>} Info tanggal jatuh tempo baru.
+   */
   static async approvePerpanjangan(transaksiId, admin) {
     const settings = getCachedSettings();
     const transaction = await db.sequelize.transaction({
@@ -812,6 +955,12 @@ class TransaksiService {
     }
   }
 
+  /**
+   * Menolak permohonan perpanjangan oleh admin.
+   * @param {number} transaksiId - ID Transaksi.
+   * @param {string} [reason] - Alasan penolakan.
+   * @returns {Promise<Object>} Status transaksi yang dikembalikan ke semula.
+   */
   static async rejectPerpanjangan(transaksiId, reason) {
     const finalReason = reason || 'Ditolak oleh admin tanpa alasan spesifik';
     const transaction = await db.sequelize.transaction({
@@ -851,6 +1000,14 @@ class TransaksiService {
 
   // ── Return Lost ────────────────────────────────────────────
 
+  /**
+   * Menangani buku yang dilaporkan hilang namun kemudian ditemukan.
+   * @param {number} transaksiId - ID Transaksi (dengan status 'lost').
+   * @param {Object} admin - Objek admin yang memproses.
+   * @param {string} kondisiBuku - Kondisi buku saat ditemukan (baik/rusak).
+   * @returns {Promise<Object>} Status transaksi terbaru.
+   * @throws {AppError} Jika kondisi buku tidak valid.
+   */
   static async returnLost(transaksiId, admin, kondisiBuku) {
     if (!kondisiBuku) throw new AppError('kondisi_buku wajib diisi', 400);
     if (!VALID_KONDISI_BUKU.has(kondisiBuku) || kondisiBuku === 'hilang') {
