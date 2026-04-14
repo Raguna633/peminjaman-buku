@@ -1,0 +1,3235 @@
+{
+  "info": {
+    "_postman_id": "perpustakaan-api-tests",
+    "name": "Perpustakaan API Tests",
+    "description": "Comprehensive API test collection for Perpustakaan Sekolah Digital. Run sequentially using Collection Runner.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "00. Setup & Auth",
+      "item": [
+        {
+          "name": "Login Admin",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{admin_username}}\",\n  \"password\": \"{{admin_password}}\"\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Response time < 2000ms\", () => pm.expect(pm.response.responseTime).to.be.below(2000));",
+                  "pm.test(\"Content-Type is JSON\", () => pm.response.to.have.header(\"Content-Type\", /json/));",
+                  "",
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Login success & token saved\", () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.success).to.be.true;",
+                  "    pm.expect(json.data).to.have.property(\"token\");",
+                  "    pm.expect(json.data.user.role).to.eql(\"admin\");",
+                  "    pm.environment.set(\"admin_token\", json.data.token);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{user_username}}\",\n  \"password\": \"{{user_password}}\"\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Response time < 2000ms\", () => pm.expect(pm.response.responseTime).to.be.below(2000));",
+                  "pm.test(\"Content-Type is JSON\", () => pm.response.to.have.header(\"Content-Type\", /json/));",
+                  "",
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Login success & token saved\", () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.success).to.be.true;",
+                  "    pm.expect(json.data).to.have.property(\"token\");",
+                  "    pm.expect(json.data.user.role).to.eql(\"user\");",
+                  "    pm.environment.set(\"user_token\", json.data.token);",
+                  "    pm.environment.set(\"user_id_for_flow\", json.data.user.id);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Profile (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/profile",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "profile"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Response time < 2000ms\", () => pm.expect(pm.response.responseTime).to.be.below(2000));",
+                  "pm.test(\"Content-Type is JSON\", () => pm.response.to.have.header(\"Content-Type\", /json/));",
+                  "",
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Profile has required fields, no password\", () => {",
+                  "    const u = pm.response.json().data;",
+                  "    pm.expect(u).to.have.property(\"id\");",
+                  "    pm.expect(u).to.have.property(\"username\");",
+                  "    pm.expect(u).to.have.property(\"role\");",
+                  "    pm.expect(u).to.not.have.property(\"password\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Profile (User)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/profile",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "profile"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Response time < 2000ms\", () => pm.expect(pm.response.responseTime).to.be.below(2000));",
+                  "pm.test(\"Content-Type is JSON\", () => pm.response.to.have.header(\"Content-Type\", /json/));",
+                  "",
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Profile role is user\", () => {",
+                  "    pm.expect(pm.response.json().data.role).to.eql(\"user\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Toggle Duty Status (ON)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/duty-status",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "duty-status"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Response time < 2000ms\", () => pm.expect(pm.response.responseTime).to.be.below(2000));",
+                  "pm.test(\"Content-Type is JSON\", () => pm.response.to.have.header(\"Content-Type\", /json/));",
+                  "",
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Duty toggled\", () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.success).to.be.true;",
+                  "    pm.expect(json.data).to.have.property(\"is_on_duty\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Check Duty Status",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/check-duty",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "check-duty"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Response time < 2000ms\", () => pm.expect(pm.response.responseTime).to.be.below(2000));",
+                  "pm.test(\"Content-Type is JSON\", () => pm.response.to.have.header(\"Content-Type\", /json/));",
+                  "",
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Has duty info\", () => {",
+                  "    pm.expect(pm.response.json().success).to.be.true;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "❌ Login Invalid Credentials",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"wronguser\",\n  \"password\": \"wrongpass\"\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Response time < 2000ms\", () => pm.expect(pm.response.responseTime).to.be.below(2000));",
+                  "pm.test(\"Content-Type is JSON\", () => pm.response.to.have.header(\"Content-Type\", /json/));",
+                  "",
+                  "pm.test(\"Status 401\", () => pm.response.to.have.status(401));",
+                  "pm.test(\"Error message returned\", () => {",
+                  "    pm.expect(pm.response.json().success).to.be.false;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "01. Kategori (Admin)",
+      "item": [
+        {
+          "name": "Create Kategori",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/kategori",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "kategori"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nama\": \"Fiksi Test\",\n  \"deskripsi\": \"Kategori fiksi untuk testing\"\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Response time < 2000ms\", () => pm.expect(pm.response.responseTime).to.be.below(2000));",
+                  "pm.test(\"Content-Type is JSON\", () => pm.response.to.have.header(\"Content-Type\", /json/));",
+                  "",
+                  "pm.test(\"Status 201\", () => pm.response.to.have.status(201));",
+                  "pm.test(\"Kategori created & ID saved\", () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.success).to.be.true;",
+                  "    pm.expect(json.data).to.have.property(\"id\");",
+                  "    pm.expect(json.data.nama).to.eql(\"Fiksi Test\");",
+                  "    pm.environment.set(\"created_kategori_id\", json.data.id);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get All Kategori",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/kategori",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "kategori"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Response time < 2000ms\", () => pm.expect(pm.response.responseTime).to.be.below(2000));",
+                  "pm.test(\"Content-Type is JSON\", () => pm.response.to.have.header(\"Content-Type\", /json/));",
+                  "",
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Returns array\", () => {",
+                  "    pm.expect(pm.response.json().data).to.be.an(\"array\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Kategori by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/kategori/{{created_kategori_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "kategori",
+                "{{created_kategori_id}}"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Response time < 2000ms\", () => pm.expect(pm.response.responseTime).to.be.below(2000));",
+                  "pm.test(\"Content-Type is JSON\", () => pm.response.to.have.header(\"Content-Type\", /json/));",
+                  "",
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Returns correct kategori\", () => {",
+                  "    const d = pm.response.json().data;",
+                  "    pm.expect(d.id).to.eql(parseInt(pm.environment.get(\"created_kategori_id\")));",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Kategori",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/kategori/{{created_kategori_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "kategori",
+                "{{created_kategori_id}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nama\": \"Fiksi Updated\",\n  \"deskripsi\": \"Updated deskripsi\"\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Response time < 2000ms\", () => pm.expect(pm.response.responseTime).to.be.below(2000));",
+                  "pm.test(\"Content-Type is JSON\", () => pm.response.to.have.header(\"Content-Type\", /json/));",
+                  "",
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Kategori updated\", () => {",
+                  "    pm.expect(pm.response.json().success).to.be.true;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "❌ Create Duplicate Kategori",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/kategori",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "kategori"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nama\": \"Fiksi Updated\",\n  \"deskripsi\": \"Duplikat\"\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Response time < 2000ms\", () => pm.expect(pm.response.responseTime).to.be.below(2000));",
+                  "pm.test(\"Content-Type is JSON\", () => pm.response.to.have.header(\"Content-Type\", /json/));",
+                  "",
+                  "pm.test(\"Status 400\", () => pm.response.to.have.status(400));",
+                  "pm.test(\"Error for duplicate\", () => {",
+                  "    pm.expect(pm.response.json().success).to.be.false;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "❌ Get Kategori Not Found",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/kategori/999999",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "kategori",
+                "999999"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Response time < 2000ms\", () => pm.expect(pm.response.responseTime).to.be.below(2000));",
+                  "pm.test(\"Content-Type is JSON\", () => pm.response.to.have.header(\"Content-Type\", /json/));",
+                  "",
+                  "pm.test(\"Status 404\", () => pm.response.to.have.status(404));",
+                  "pm.test(\"Not found message\", () => {",
+                  "    pm.expect(pm.response.json().success).to.be.false;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "02. Buku (Admin)",
+      "item": [
+        {
+          "name": "Create Buku",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/buku",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "buku"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"judul\": \"Buku Test Postman\",\n  \"pengarang\": \"Author Test\",\n  \"penerbit\": \"Publisher Test\",\n  \"tahun_terbit\": 2024,\n  \"isbn\": \"978-TEST-001\",\n  \"kategori_id\": \"{{created_kategori_id}}\",\n  \"stok\": 5,\n  \"kondisi\": \"baik\",\n  \"lokasi\": \"Rak A1\",\n  \"deskripsi\": \"Buku untuk testing Postman\"\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Response time < 2000ms\", () => pm.expect(pm.response.responseTime).to.be.below(2000));",
+                  "pm.test(\"Content-Type is JSON\", () => pm.response.to.have.header(\"Content-Type\", /json/));",
+                  "",
+                  "pm.test(\"Status 201\", () => pm.response.to.have.status(201));",
+                  "pm.test(\"Buku created & ID saved\", () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.success).to.be.true;",
+                  "    pm.expect(json.data).to.have.property(\"id\");",
+                  "    pm.expect(json.data.judul).to.eql(\"Buku Test Postman\");",
+                  "    pm.environment.set(\"created_buku_id\", json.data.id);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get All Buku",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/buku",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "buku"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Response time < 2000ms\", () => pm.expect(pm.response.responseTime).to.be.below(2000));",
+                  "pm.test(\"Content-Type is JSON\", () => pm.response.to.have.header(\"Content-Type\", /json/));",
+                  "",
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Returns array\", () => {",
+                  "    const d = pm.response.json().data;",
+                  "    pm.expect(d).to.be.an(\"array\");",
+                  "    pm.expect(d.length).to.be.greaterThan(0);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Buku by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/buku/{{created_buku_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "buku",
+                "{{created_buku_id}}"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Response time < 2000ms\", () => pm.expect(pm.response.responseTime).to.be.below(2000));",
+                  "pm.test(\"Content-Type is JSON\", () => pm.response.to.have.header(\"Content-Type\", /json/));",
+                  "",
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Correct buku returned\", () => {",
+                  "    const d = pm.response.json().data;",
+                  "    pm.expect(d.judul).to.eql(\"Buku Test Postman\");",
+                  "    pm.expect(d).to.have.property(\"stok\");",
+                  "    pm.expect(d).to.have.property(\"kategori_id\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Buku",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/buku/{{created_buku_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "buku",
+                "{{created_buku_id}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"judul\": \"Buku Test Updated\",\n  \"pengarang\": \"Author Test\",\n  \"penerbit\": \"Publisher Test\",\n  \"tahun_terbit\": 2024,\n  \"isbn\": \"978-TEST-001\",\n  \"kategori_id\": \"{{created_kategori_id}}\",\n  \"stok\": 10,\n  \"kondisi\": \"baik\",\n  \"lokasi\": \"Rak B2\",\n  \"deskripsi\": \"Updated\"\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Response time < 2000ms\", () => pm.expect(pm.response.responseTime).to.be.below(2000));",
+                  "pm.test(\"Content-Type is JSON\", () => pm.response.to.have.header(\"Content-Type\", /json/));",
+                  "",
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Buku updated\", () => {",
+                  "    pm.expect(pm.response.json().success).to.be.true;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "❌ Create Buku Missing Fields",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/buku",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "buku"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"judul\": \"\"\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Response time < 2000ms\", () => pm.expect(pm.response.responseTime).to.be.below(2000));",
+                  "pm.test(\"Content-Type is JSON\", () => pm.response.to.have.header(\"Content-Type\", /json/));",
+                  "",
+                  "pm.test(\"Status 400\", () => pm.response.to.have.status(400));",
+                  "pm.test(\"Validation error\", () => {",
+                  "    pm.expect(pm.response.json().success).to.be.false;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "❌ Get Buku Not Found",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/buku/999999",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "buku",
+                "999999"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Response time < 2000ms\", () => pm.expect(pm.response.responseTime).to.be.below(2000));",
+                  "pm.test(\"Content-Type is JSON\", () => pm.response.to.have.header(\"Content-Type\", /json/));",
+                  "",
+                  "pm.test(\"Status 404\", () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "03. User Management (Admin)",
+      "item": [
+        {
+          "name": "Create User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/user",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "user"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"testuser_pm\",\n  \"password\": \"test123456\",\n  \"nama_lengkap\": \"Test User Postman\",\n  \"nis\": \"PM001\",\n  \"role\": \"user\",\n  \"status\": \"active\",\n  \"email\": \"testpm@mail.com\"\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Response time < 2000ms\", () => pm.expect(pm.response.responseTime).to.be.below(2000));",
+                  "pm.test(\"Content-Type is JSON\", () => pm.response.to.have.header(\"Content-Type\", /json/));",
+                  "",
+                  "pm.test(\"Status 201\", () => pm.response.to.have.status(201));",
+                  "pm.test(\"User created & ID saved\", () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.success).to.be.true;",
+                  "    pm.expect(json.data).to.have.property(\"id\");",
+                  "    pm.environment.set(\"created_user_id\", json.data.id);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get All Users",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/user",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "user"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Response time < 2000ms\", () => pm.expect(pm.response.responseTime).to.be.below(2000));",
+                  "pm.test(\"Content-Type is JSON\", () => pm.response.to.have.header(\"Content-Type\", /json/));",
+                  "",
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Returns array of users\", () => {",
+                  "    pm.expect(pm.response.json().data).to.be.an(\"array\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get User by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/user/{{created_user_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "user",
+                "{{created_user_id}}"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Response time < 2000ms\", () => pm.expect(pm.response.responseTime).to.be.below(2000));",
+                  "pm.test(\"Content-Type is JSON\", () => pm.response.to.have.header(\"Content-Type\", /json/));",
+                  "",
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Correct user returned\", () => {",
+                  "    const d = pm.response.json().data;",
+                  "    pm.expect(d.username).to.eql(\"testuser_pm\");",
+                  "    pm.expect(d).to.not.have.property(\"password\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/user/{{created_user_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "user",
+                "{{created_user_id}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nama_lengkap\": \"Updated Postman User\",\n  \"phone\": \"081234567890\"\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Response time < 2000ms\", () => pm.expect(pm.response.responseTime).to.be.below(2000));",
+                  "pm.test(\"Content-Type is JSON\", () => pm.response.to.have.header(\"Content-Type\", /json/));",
+                  "",
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"User updated\", () => {",
+                  "    pm.expect(pm.response.json().success).to.be.true;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "❌ Create Duplicate Username",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/user",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "user"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"testuser_pm\",\n  \"password\": \"test123456\",\n  \"nama_lengkap\": \"Dup\",\n  \"role\": \"user\"\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Response time < 2000ms\", () => pm.expect(pm.response.responseTime).to.be.below(2000));",
+                  "pm.test(\"Content-Type is JSON\", () => pm.response.to.have.header(\"Content-Type\", /json/));",
+                  "",
+                  "pm.test(\"Status 400\", () => pm.response.to.have.status(400));",
+                  "pm.test(\"Duplicate error\", () => {",
+                  "    pm.expect(pm.response.json().success).to.be.false;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete User",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/user/{{created_user_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "user",
+                "{{created_user_id}}"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Response time < 2000ms\", () => pm.expect(pm.response.responseTime).to.be.below(2000));",
+                  "pm.test(\"Content-Type is JSON\", () => pm.response.to.have.header(\"Content-Type\", /json/));",
+                  "",
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"User deleted\", () => {",
+                  "    pm.expect(pm.response.json().success).to.be.true;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "04. Settings (Admin)",
+      "item": [
+        {
+          "name": "Get Settings",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/settings",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "settings"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Response time < 2000ms\", () => pm.expect(pm.response.responseTime).to.be.below(2000));",
+                  "pm.test(\"Content-Type is JSON\", () => pm.response.to.have.header(\"Content-Type\", /json/));",
+                  "",
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Settings has required fields\", () => {",
+                  "    const s = pm.response.json().data;",
+                  "    pm.expect(s).to.have.property(\"max_borrow_limit\");",
+                  "    pm.expect(s).to.have.property(\"borrow_duration_days\");",
+                  "    pm.expect(s).to.have.property(\"denda_type\");",
+                  "    pm.expect(s).to.have.property(\"denda_per_day_amount\");",
+                  "    pm.expect(s).to.have.property(\"max_denda_amount\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Settings",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/settings",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "settings"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"max_borrow_limit\": 3,\n  \"borrow_duration_days\": 7,\n  \"denda_type\": \"per_day\",\n  \"denda_per_day_amount\": 1000\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Response time < 2000ms\", () => pm.expect(pm.response.responseTime).to.be.below(2000));",
+                  "pm.test(\"Content-Type is JSON\", () => pm.response.to.have.header(\"Content-Type\", /json/));",
+                  "",
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Settings updated\", () => {",
+                  "    pm.expect(pm.response.json().success).to.be.true;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "05. Flow: Peminjaman → Pengembalian (Happy Path)",
+      "item": [
+        {
+          "name": "[User] Request Peminjaman",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/transaksi/request-peminjaman",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "transaksi",
+                "request-peminjaman"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"buku_id\": \"{{created_buku_id}}\"\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Response time < 2000ms\", () => pm.expect(pm.response.responseTime).to.be.below(2000));",
+                  "pm.test(\"Content-Type is JSON\", () => pm.response.to.have.header(\"Content-Type\", /json/));",
+                  "",
+                  "pm.test(\"Status 201\", () => pm.response.to.have.status(201));",
+                  "pm.test(\"Transaksi pending & ID saved\", () => {",
+                  "    const d = pm.response.json().data;",
+                  "    pm.expect(d.status).to.eql(\"pending\");",
+                  "    pm.environment.set(\"transaksi_id_flow5\", d.id);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "[Admin] Get All Transaksi (status=pending)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/transaksi?status=pending",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "transaksi?status=pending"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Response time < 2000ms\", () => pm.expect(pm.response.responseTime).to.be.below(2000));",
+                  "pm.test(\"Content-Type is JSON\", () => pm.response.to.have.header(\"Content-Type\", /json/));",
+                  "",
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Has pending transaksi\", () => {",
+                  "    const d = pm.response.json().data;",
+                  "    pm.expect(d).to.be.an(\"array\");",
+                  "    pm.expect(d.length).to.be.greaterThan(0);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "[Admin] Approve Peminjaman",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/transaksi/{{transaksi_id_flow5}}/approve-peminjaman",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "transaksi",
+                "{{transaksi_id_flow5}}",
+                "approve-peminjaman"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Response time < 2000ms\", () => pm.expect(pm.response.responseTime).to.be.below(2000));",
+                  "pm.test(\"Content-Type is JSON\", () => pm.response.to.have.header(\"Content-Type\", /json/));",
+                  "",
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Transaksi approved with dates\", () => {",
+                  "    const d = pm.response.json().data;",
+                  "    pm.expect(d.status).to.eql(\"approved\");",
+                  "    pm.expect(d.tanggal_pinjam).to.not.be.null;",
+                  "    pm.expect(d.tanggal_jatuh_tempo).to.not.be.null;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "[User] Get My Transaksi",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/transaksi/user",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "transaksi",
+                "user"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Response time < 2000ms\", () => pm.expect(pm.response.responseTime).to.be.below(2000));",
+                  "pm.test(\"Content-Type is JSON\", () => pm.response.to.have.header(\"Content-Type\", /json/));",
+                  "",
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Has approved transaksi\", () => {",
+                  "    const d = pm.response.json().data;",
+                  "    pm.expect(d).to.be.an(\"array\");",
+                  "    const found = d.find(t => t.id === parseInt(pm.environment.get(\"transaksi_id_flow5\")));",
+                  "    pm.expect(found).to.not.be.undefined;",
+                  "    pm.expect(found.status).to.eql(\"approved\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "[User] Request Pengembalian",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/transaksi/request-pengembalian",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "transaksi",
+                "request-pengembalian"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"transaksi_id\": \"{{transaksi_id_flow5}}\"\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Response time < 2000ms\", () => pm.expect(pm.response.responseTime).to.be.below(2000));",
+                  "pm.test(\"Content-Type is JSON\", () => pm.response.to.have.header(\"Content-Type\", /json/));",
+                  "",
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Return request sent\", () => {",
+                  "    pm.expect(pm.response.json().success).to.be.true;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "[Admin] Kalkulasi Denda (baik)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/transaksi/{{transaksi_id_flow5}}/kalkulasi-denda",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "transaksi",
+                "{{transaksi_id_flow5}}",
+                "kalkulasi-denda"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"kondisi_buku\": \"baik\",\n  \"excluded_dates\": []\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Response time < 2000ms\", () => pm.expect(pm.response.responseTime).to.be.below(2000));",
+                  "pm.test(\"Content-Type is JSON\", () => pm.response.to.have.header(\"Content-Type\", /json/));",
+                  "",
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Fine preview structure\", () => {",
+                  "    const k = pm.response.json().data;",
+                  "    pm.expect(k).to.have.property(\"total_denda\");",
+                  "    pm.expect(k).to.have.property(\"denda_keterlambatan\");",
+                  "    pm.expect(k).to.have.property(\"denda_kerusakan\");",
+                  "    pm.expect(k).to.have.property(\"kondisi_buku\");",
+                  "    pm.expect(k.kondisi_buku).to.eql(\"baik\");",
+                  "    pm.expect(k.denda_kerusakan).to.eql(0);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "[Admin] Approve Pengembalian",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/transaksi/{{transaksi_id_flow5}}/approve-pengembalian",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "transaksi",
+                "{{transaksi_id_flow5}}",
+                "approve-pengembalian"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"kondisi_buku\": \"baik\",\n  \"excluded_dates\": []\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Response time < 2000ms\", () => pm.expect(pm.response.responseTime).to.be.below(2000));",
+                  "pm.test(\"Content-Type is JSON\", () => pm.response.to.have.header(\"Content-Type\", /json/));",
+                  "",
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Pengembalian approved\", () => {",
+                  "    pm.expect(pm.response.json().success).to.be.true;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "[User] Verify Status = returned",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/transaksi/{{transaksi_id_flow5}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "transaksi",
+                "{{transaksi_id_flow5}}"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Response time < 2000ms\", () => pm.expect(pm.response.responseTime).to.be.below(2000));",
+                  "pm.test(\"Content-Type is JSON\", () => pm.response.to.have.header(\"Content-Type\", /json/));",
+                  "",
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Transaksi returned\", () => {",
+                  "    pm.expect(pm.response.json().data.status).to.eql(\"returned\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "06. Flow: Peminjaman → Reject",
+      "item": [
+        {
+          "name": "[User] Request Peminjaman",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/transaksi/request-peminjaman",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "transaksi",
+                "request-peminjaman"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"buku_id\": \"{{created_buku_id}}\"\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Response time < 2000ms\", () => pm.expect(pm.response.responseTime).to.be.below(2000));",
+                  "pm.test(\"Content-Type is JSON\", () => pm.response.to.have.header(\"Content-Type\", /json/));",
+                  "",
+                  "pm.test(\"Status 201\", () => pm.response.to.have.status(201));",
+                  "pm.test(\"Save transaksi ID\", () => {",
+                  "    pm.environment.set(\"transaksi_id_flow6\", pm.response.json().data.id);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "[Admin] Reject Peminjaman",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/transaksi/{{transaksi_id_flow6}}/reject-peminjaman",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "transaksi",
+                "{{transaksi_id_flow6}}",
+                "reject-peminjaman"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rejection_reason\": \"Buku sudah dipesan oleh kelas lain\"\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Response time < 2000ms\", () => pm.expect(pm.response.responseTime).to.be.below(2000));",
+                  "pm.test(\"Content-Type is JSON\", () => pm.response.to.have.header(\"Content-Type\", /json/));",
+                  "",
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Rejection success\", () => {",
+                  "    pm.expect(pm.response.json().success).to.be.true;",
+                  "    pm.expect(pm.response.json().message).to.include(\"ditolak\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "07. Flow: Perpanjangan",
+      "item": [
+        {
+          "name": "[User] Request Peminjaman (buku lain)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/transaksi/request-peminjaman",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "transaksi",
+                "request-peminjaman"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"buku_id\": \"{{created_buku_id}}\"\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Response time < 2000ms\", () => pm.expect(pm.response.responseTime).to.be.below(2000));",
+                  "pm.test(\"Content-Type is JSON\", () => pm.response.to.have.header(\"Content-Type\", /json/));",
+                  "",
+                  "pm.test(\"Status 201\", () => pm.response.to.have.status(201));",
+                  "pm.test(\"Save IDs\", () => {",
+                  "    pm.environment.set(\"transaksi_id_flow7\", pm.response.json().data.id);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "[Admin] Approve Peminjaman",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/transaksi/{{transaksi_id_flow7}}/approve-peminjaman",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "transaksi",
+                "{{transaksi_id_flow7}}",
+                "approve-peminjaman"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Response time < 2000ms\", () => pm.expect(pm.response.responseTime).to.be.below(2000));",
+                  "pm.test(\"Content-Type is JSON\", () => pm.response.to.have.header(\"Content-Type\", /json/));",
+                  "",
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Approved\", () => {",
+                  "    pm.expect(pm.response.json().data.status).to.eql(\"approved\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "[User] Request Perpanjangan",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/transaksi/{{transaksi_id_flow7}}/request-perpanjangan",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "transaksi",
+                "{{transaksi_id_flow7}}",
+                "request-perpanjangan"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Response time < 2000ms\", () => pm.expect(pm.response.responseTime).to.be.below(2000));",
+                  "pm.test(\"Content-Type is JSON\", () => pm.response.to.have.header(\"Content-Type\", /json/));",
+                  "",
+                  "pm.test(\"Status 201\", () => pm.response.to.have.status(201));",
+                  "pm.test(\"Extension request sent\", () => {",
+                  "    pm.expect(pm.response.json().success).to.be.true;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "[Admin] Approve Perpanjangan",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/transaksi/{{transaksi_id_flow7}}/approve-perpanjangan",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "transaksi",
+                "{{transaksi_id_flow7}}",
+                "approve-perpanjangan"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Response time < 2000ms\", () => pm.expect(pm.response.responseTime).to.be.below(2000));",
+                  "pm.test(\"Content-Type is JSON\", () => pm.response.to.have.header(\"Content-Type\", /json/));",
+                  "",
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Extension approved with new date\", () => {",
+                  "    const d = pm.response.json().data;",
+                  "    pm.expect(d).to.have.property(\"tanggal_jatuh_tempo_baru\");",
+                  "    pm.expect(d).to.have.property(\"extension_count\");",
+                  "    pm.expect(d.extension_count).to.be.greaterThan(0);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "[User] Verify Updated Due Date",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/transaksi/{{transaksi_id_flow7}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "transaksi",
+                "{{transaksi_id_flow7}}"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Response time < 2000ms\", () => pm.expect(pm.response.responseTime).to.be.below(2000));",
+                  "pm.test(\"Content-Type is JSON\", () => pm.response.to.have.header(\"Content-Type\", /json/));",
+                  "",
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Extension count updated\", () => {",
+                  "    pm.expect(pm.response.json().data.extension_count).to.be.greaterThan(0);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "08. Flow: Pengembalian + Denda (Buku Rusak)",
+      "item": [
+        {
+          "name": "[User] Req Pengembalian (from flow7)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/transaksi/request-pengembalian",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "transaksi",
+                "request-pengembalian"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"transaksi_id\": \"{{transaksi_id_flow7}}\"\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Response time < 2000ms\", () => pm.expect(pm.response.responseTime).to.be.below(2000));",
+                  "pm.test(\"Content-Type is JSON\", () => pm.response.to.have.header(\"Content-Type\", /json/));",
+                  "",
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "[Admin] Kalkulasi Denda (rusak_ringan)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/transaksi/{{transaksi_id_flow7}}/kalkulasi-denda",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "transaksi",
+                "{{transaksi_id_flow7}}",
+                "kalkulasi-denda"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"kondisi_buku\": \"rusak_ringan\",\n  \"excluded_dates\": []\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Response time < 2000ms\", () => pm.expect(pm.response.responseTime).to.be.below(2000));",
+                  "pm.test(\"Content-Type is JSON\", () => pm.response.to.have.header(\"Content-Type\", /json/));",
+                  "",
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Denda kerusakan > 0\", () => {",
+                  "    const k = pm.response.json().data;",
+                  "    pm.expect(k.denda_kerusakan).to.be.greaterThan(0);",
+                  "    pm.expect(k.kondisi_buku).to.eql(\"rusak_ringan\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "[Admin] Bayar Denda (lunas)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/transaksi/{{transaksi_id_flow7}}/bayar-denda",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "transaksi",
+                "{{transaksi_id_flow7}}",
+                "bayar-denda"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"jumlah_bayar\": 50000\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Response time < 2000ms\", () => pm.expect(pm.response.responseTime).to.be.below(2000));",
+                  "pm.test(\"Content-Type is JSON\", () => pm.response.to.have.header(\"Content-Type\", /json/));",
+                  "",
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Payment processed\", () => {",
+                  "    const d = pm.response.json().data;",
+                  "    pm.expect(d).to.have.property(\"is_lunas\");",
+                  "    pm.expect(d).to.have.property(\"kembalian\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "[Admin] Approve Pengembalian",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/transaksi/{{transaksi_id_flow7}}/approve-pengembalian",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "transaksi",
+                "{{transaksi_id_flow7}}",
+                "approve-pengembalian"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"kondisi_buku\": \"rusak_ringan\",\n  \"excluded_dates\": []\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Response time < 2000ms\", () => pm.expect(pm.response.responseTime).to.be.below(2000));",
+                  "pm.test(\"Content-Type is JSON\", () => pm.response.to.have.header(\"Content-Type\", /json/));",
+                  "",
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Returned\", () => {",
+                  "    pm.expect(pm.response.json().success).to.be.true;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "09. Flow: Denda Belum Lunas → Bulk Payment",
+      "item": [
+        {
+          "name": "[User] Request Peminjaman",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/transaksi/request-peminjaman",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "transaksi",
+                "request-peminjaman"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"buku_id\": \"{{created_buku_id}}\"\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Response time < 2000ms\", () => pm.expect(pm.response.responseTime).to.be.below(2000));",
+                  "pm.test(\"Content-Type is JSON\", () => pm.response.to.have.header(\"Content-Type\", /json/));",
+                  "",
+                  "pm.test(\"Status 201\", () => pm.response.to.have.status(201));",
+                  "pm.test(\"Save ID\", () => { pm.environment.set(\"transaksi_id_flow9\", pm.response.json().data.id); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "[Admin] Approve Peminjaman",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/transaksi/{{transaksi_id_flow9}}/approve-peminjaman",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "transaksi",
+                "{{transaksi_id_flow9}}",
+                "approve-peminjaman"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Response time < 2000ms\", () => pm.expect(pm.response.responseTime).to.be.below(2000));",
+                  "pm.test(\"Content-Type is JSON\", () => pm.response.to.have.header(\"Content-Type\", /json/));",
+                  "",
+                  "pm.test(\"Status 200 & approved\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "    pm.expect(pm.response.json().data.status).to.eql(\"approved\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "[User] Request Pengembalian",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/transaksi/request-pengembalian",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "transaksi",
+                "request-pengembalian"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"transaksi_id\": \"{{transaksi_id_flow9}}\"\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Response time < 2000ms\", () => pm.expect(pm.response.responseTime).to.be.below(2000));",
+                  "pm.test(\"Content-Type is JSON\", () => pm.response.to.have.header(\"Content-Type\", /json/));",
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "[Admin] Kalkulasi Denda (rusak_sedang)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/transaksi/{{transaksi_id_flow9}}/kalkulasi-denda",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "transaksi",
+                "{{transaksi_id_flow9}}",
+                "kalkulasi-denda"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"kondisi_buku\": \"rusak_sedang\",\n  \"excluded_dates\": []\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Response time < 2000ms\", () => pm.expect(pm.response.responseTime).to.be.below(2000));",
+                  "pm.test(\"Content-Type is JSON\", () => pm.response.to.have.header(\"Content-Type\", /json/));",
+                  "",
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Denda kerusakan sedang\", () => {",
+                  "    pm.expect(pm.response.json().data.denda_kerusakan).to.be.greaterThan(0);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "[Admin] Bayar Denda (kurang → sisa)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/transaksi/{{transaksi_id_flow9}}/bayar-denda",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "transaksi",
+                "{{transaksi_id_flow9}}",
+                "bayar-denda"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"jumlah_bayar\": 1000\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Response time < 2000ms\", () => pm.expect(pm.response.responseTime).to.be.below(2000));",
+                  "pm.test(\"Content-Type is JSON\", () => pm.response.to.have.header(\"Content-Type\", /json/));",
+                  "",
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Partial payment, not lunas\", () => {",
+                  "    const d = pm.response.json().data;",
+                  "    pm.expect(d.is_lunas).to.be.false;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "[Admin] Approve Pengembalian",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/transaksi/{{transaksi_id_flow9}}/approve-pengembalian",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "transaksi",
+                "{{transaksi_id_flow9}}",
+                "approve-pengembalian"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"kondisi_buku\": \"rusak_sedang\",\n  \"excluded_dates\": []\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Response time < 2000ms\", () => pm.expect(pm.response.responseTime).to.be.below(2000));",
+                  "pm.test(\"Content-Type is JSON\", () => pm.response.to.have.header(\"Content-Type\", /json/));",
+                  "",
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "[Admin] Bulk Bayar Denda (lunasi sisa)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/transaksi/bulk-bayar-denda",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "transaksi",
+                "bulk-bayar-denda"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"transaksi_ids\": [\n    0\n  ],\n  \"jumlah_bayar\": 100000,\n  \"user_id\": 0\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Response time < 2000ms\", () => pm.expect(pm.response.responseTime).to.be.below(2000));",
+                  "pm.test(\"Content-Type is JSON\", () => pm.response.to.have.header(\"Content-Type\", /json/));",
+                  "",
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Bulk payment processed\", () => {",
+                  "    pm.expect(pm.response.json().success).to.be.true;",
+                  "});"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "const tid = pm.environment.get(\"transaksi_id_flow9\");",
+                  "const uid = pm.environment.get(\"user_id_for_flow\");",
+                  "pm.environment.set(\"_bulk_body\", JSON.stringify({ transaksi_ids: [parseInt(tid)], jumlah_bayar: 100000, user_id: parseInt(uid) }));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "10. Flow: Bulk Approve Peminjaman",
+      "item": [
+        {
+          "name": "[User] Request Peminjaman #1",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/transaksi/request-peminjaman",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "transaksi",
+                "request-peminjaman"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"buku_id\": \"{{created_buku_id}}\"\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Response time < 2000ms\", () => pm.expect(pm.response.responseTime).to.be.below(2000));",
+                  "pm.test(\"Content-Type is JSON\", () => pm.response.to.have.header(\"Content-Type\", /json/));",
+                  "",
+                  "pm.test(\"Status 201\", () => pm.response.to.have.status(201));",
+                  "pm.test(\"Save bulk ID 1\", () => {",
+                  "    pm.environment.set(\"transaksi_ids_bulk\", JSON.stringify([pm.response.json().data.id]));",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "[Admin] Bulk Approve Peminjaman",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/transaksi/bulk-approve-peminjaman",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "transaksi",
+                "bulk-approve-peminjaman"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"transaksi_ids\": []\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Response time < 2000ms\", () => pm.expect(pm.response.responseTime).to.be.below(2000));",
+                  "pm.test(\"Content-Type is JSON\", () => pm.response.to.have.header(\"Content-Type\", /json/));",
+                  "",
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Bulk approve result\", () => {",
+                  "    const d = pm.response.json().data;",
+                  "    pm.expect(d).to.have.property(\"success\");",
+                  "    pm.expect(d).to.have.property(\"failed\");",
+                  "    pm.expect(d.success).to.be.an(\"array\");",
+                  "});"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "const ids = JSON.parse(pm.environment.get(\"transaksi_ids_bulk\") || \"[]\");",
+                  "pm.request.body.raw = JSON.stringify({ transaksi_ids: ids });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "12. Notifikasi",
+      "item": [
+        {
+          "name": "[User] Get Unread Notifications",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/notifikasi/unread",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "notifikasi",
+                "unread"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Response time < 2000ms\", () => pm.expect(pm.response.responseTime).to.be.below(2000));",
+                  "pm.test(\"Content-Type is JSON\", () => pm.response.to.have.header(\"Content-Type\", /json/));",
+                  "",
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Has notifications array & count\", () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property(\"data\");",
+                  "    pm.expect(json).to.have.property(\"count\");",
+                  "    pm.expect(json.data).to.be.an(\"array\");",
+                  "    if (json.data.length > 0) {",
+                  "        pm.environment.set(\"notification_id\", json.data[0].id);",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "[User] Mark Notification as Read",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/notifikasi/{{notification_id}}/read",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "notifikasi",
+                "{{notification_id}}",
+                "read"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Response time < 2000ms\", () => pm.expect(pm.response.responseTime).to.be.below(2000));",
+                  "pm.test(\"Content-Type is JSON\", () => pm.response.to.have.header(\"Content-Type\", /json/));",
+                  "",
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Marked as read\", () => {",
+                  "    pm.expect(pm.response.json().success).to.be.true;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "[User] Mark All as Read",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/notifikasi/read-all",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "notifikasi",
+                "read-all"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Response time < 2000ms\", () => pm.expect(pm.response.responseTime).to.be.below(2000));",
+                  "pm.test(\"Content-Type is JSON\", () => pm.response.to.have.header(\"Content-Type\", /json/));",
+                  "",
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"All marked as read\", () => {",
+                  "    pm.expect(pm.response.json().success).to.be.true;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "13. Edge Cases & Negative Tests",
+      "item": [
+        {
+          "name": "❌ [Unauthorized] Access tanpa token",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/transaksi",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "transaksi"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Response time < 2000ms\", () => pm.expect(pm.response.responseTime).to.be.below(2000));",
+                  "pm.test(\"Content-Type is JSON\", () => pm.response.to.have.header(\"Content-Type\", /json/));",
+                  "",
+                  "pm.test(\"Status 401\", () => pm.response.to.have.status(401));",
+                  "pm.test(\"Unauthorized message\", () => {",
+                  "    pm.expect(pm.response.json().message).to.include(\"Unauthorized\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "❌ [User] Access admin-only endpoint",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/transaksi",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "transaksi"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Response time < 2000ms\", () => pm.expect(pm.response.responseTime).to.be.below(2000));",
+                  "pm.test(\"Content-Type is JSON\", () => pm.response.to.have.header(\"Content-Type\", /json/));",
+                  "",
+                  "pm.test(\"Status 403\", () => pm.response.to.have.status(403));",
+                  "pm.test(\"Forbidden\", () => {",
+                  "    pm.expect(pm.response.json().message).to.include(\"Forbidden\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "❌ [User] Pinjam buku stok 0 (if applicable)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/transaksi/request-peminjaman",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "transaksi",
+                "request-peminjaman"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"buku_id\": 999999\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Response time < 2000ms\", () => pm.expect(pm.response.responseTime).to.be.below(2000));",
+                  "pm.test(\"Content-Type is JSON\", () => pm.response.to.have.header(\"Content-Type\", /json/));",
+                  "",
+                  "pm.test(\"Status 4xx error\", () => {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([400, 404]);",
+                  "});",
+                  "pm.test(\"Error message\", () => {",
+                  "    pm.expect(pm.response.json().success).to.be.false;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "❌ [Admin] Approve non-existent transaksi",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/transaksi/999999/approve-peminjaman",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "transaksi",
+                "999999",
+                "approve-peminjaman"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Response time < 2000ms\", () => pm.expect(pm.response.responseTime).to.be.below(2000));",
+                  "pm.test(\"Content-Type is JSON\", () => pm.response.to.have.header(\"Content-Type\", /json/));",
+                  "",
+                  "pm.test(\"Status 404\", () => pm.response.to.have.status(404));",
+                  "pm.test(\"Not found\", () => {",
+                  "    pm.expect(pm.response.json().success).to.be.false;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "❌ [Admin] Approve already rejected",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/transaksi/{{transaksi_id_flow6}}/approve-peminjaman",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "transaksi",
+                "{{transaksi_id_flow6}}",
+                "approve-peminjaman"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Response time < 2000ms\", () => pm.expect(pm.response.responseTime).to.be.below(2000));",
+                  "pm.test(\"Content-Type is JSON\", () => pm.response.to.have.header(\"Content-Type\", /json/));",
+                  "",
+                  "pm.test(\"Status 400\", () => pm.response.to.have.status(400));",
+                  "pm.test(\"Cannot approve rejected\", () => {",
+                  "    pm.expect(pm.response.json().success).to.be.false;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "❌ [User] Request tanpa admin berjaga",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/transaksi/request-peminjaman",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "transaksi",
+                "request-peminjaman"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"buku_id\": \"{{created_buku_id}}\"\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Response time < 2000ms\", () => pm.expect(pm.response.responseTime).to.be.below(2000));",
+                  "pm.test(\"Content-Type is JSON\", () => pm.response.to.have.header(\"Content-Type\", /json/));",
+                  "",
+                  "pm.test(\"Status 400\", () => pm.response.to.have.status(400));",
+                  "pm.test(\"No admin on duty message\", () => {",
+                  "    pm.expect(pm.response.json().message).to.include(\"admin berjaga\");",
+                  "});"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// NOTE: Run this AFTER toggling admin duty OFF in folder 14"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "14. Cleanup & Teardown",
+      "item": [
+        {
+          "name": "Toggle Duty Status (OFF)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/duty-status",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "duty-status"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Response time < 2000ms\", () => pm.expect(pm.response.responseTime).to.be.below(2000));",
+                  "pm.test(\"Content-Type is JSON\", () => pm.response.to.have.header(\"Content-Type\", /json/));",
+                  "",
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete Test Kategori",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/kategori/{{created_kategori_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "kategori",
+                "{{created_kategori_id}}"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Response time < 2000ms\", () => pm.expect(pm.response.responseTime).to.be.below(2000));",
+                  "pm.test(\"Content-Type is JSON\", () => pm.response.to.have.header(\"Content-Type\", /json/));",
+                  "",
+                  "pm.test(\"Cleanup done\", () => {",
+                  "    // May fail if books still exist — that's OK",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 400]);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
