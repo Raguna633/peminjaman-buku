@@ -1,0 +1,12 @@
+{
+  "dependencies": {
+    "pm2": "^6.0.14"
+  },
+  "scripts": {
+    "dev": "pm2 start ecosystem.config.js --dev",
+    "start": "pm2 start ecosystem.config.js",
+    "stop": "pm2 stop all",
+    "restart": "pm2 restart all",
+    "monitor": "pm2 monit"
+  }
+}
