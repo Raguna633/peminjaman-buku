@@ -4,8 +4,17 @@ import { getIO } from '../socket/index.js';
 import { logError } from '../utils/logger.js';
 import { pushNotificationToUser } from '../utils/notificationHelper.js';
 
+/**
+ * Controller untuk mengelola seluruh alur transaksi (Peminjaman, Pengembalian, Pembayaran, Perpanjangan).
+ */
 class TransaksiController {
 
+  /**
+   * Mengambil semua daftar transaksi dengan filter opsional.
+   * @param {import('express').Request} req - Express Request object (query: status, user_id, limit, offset, search)
+   * @param {import('express').Response} res - Express Response object
+   * @returns {Promise<import('express').Response>} JSON response
+   */
   static async getAll(req, res) {
     try {
       const { status, user_id, limit, offset, search } = req.query;
@@ -17,6 +26,12 @@ class TransaksiController {
     }
   }
 
+  /**
+   * Mengambil satu data transaksi berdasarkan ID.
+   * @param {import('express').Request} req - Express Request object (params: id)
+   * @param {import('express').Response} res - Express Response object
+   * @returns {Promise<import('express').Response>} JSON response
+   */
   static async getById(req, res) {
     try {
       const { id } = req.params;
@@ -29,6 +44,12 @@ class TransaksiController {
     }
   }
 
+  /**
+   * Mengambil riwayat transaksi milik user yang sedang login.
+   * @param {import('express').Request} req - Express Request object (query: status, limit, offset, search)
+   * @param {import('express').Response} res - Express Response object
+   * @returns {Promise<import('express').Response>} JSON response
+   */
   static async getByUser(req, res) {
     try {
       const userId = req.user.id;
@@ -43,6 +64,12 @@ class TransaksiController {
 
   // ── Peminjaman ─────────────────────────────────────────────
 
+  /**
+   * Mengajukan permohonan peminjaman buku oleh user.
+   * @param {import('express').Request} req - Express Request object (body: buku_id)
+   * @param {import('express').Response} res - Express Response object
+   * @returns {Promise<import('express').Response>} JSON response
+   */
   static async requestPeminjaman(req, res) {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -75,6 +102,12 @@ class TransaksiController {
     }
   }
 
+  /**
+   * Menyetujui permohonan peminjaman buku oleh admin.
+   * @param {import('express').Request} req - Express Request object (params: id)
+   * @param {import('express').Response} res - Express Response object
+   * @returns {Promise<import('express').Response>} JSON response
+   */
   static async approvePeminjaman(req, res) {
     try {
       const { id } = req.params;
@@ -107,6 +140,12 @@ class TransaksiController {
     }
   }
 
+  /**
+   * Menolak permohonan peminjaman buku oleh admin.
+   * @param {import('express').Request} req - Express Request object (params: id, body: rejection_reason)
+   * @param {import('express').Response} res - Express Response object
+   * @returns {Promise<import('express').Response>} JSON response
+   */
   static async rejectPeminjaman(req, res) {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -140,6 +179,12 @@ class TransaksiController {
     }
   }
 
+  /**
+   * Menyetujui banyak permohonan peminjaman sekaligus.
+   * @param {import('express').Request} req - Express Request object (body: transaksi_ids[])
+   * @param {import('express').Response} res - Express Response object
+   * @returns {Promise<import('express').Response>} JSON response
+   */
   static async bulkApprovePeminjaman(req, res) {
     try {
       const { transaksi_ids } = req.body;
@@ -167,6 +212,12 @@ class TransaksiController {
 
   // ── Pengembalian ───────────────────────────────────────────
 
+  /**
+   * Mengajukan permohonan pengembalian buku oleh user.
+   * @param {import('express').Request} req - Express Request object (body: transaksi_id)
+   * @param {import('express').Response} res - Express Response object
+   * @returns {Promise<import('express').Response>} JSON response
+   */
   static async requestPengembalian(req, res) {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -199,6 +250,12 @@ class TransaksiController {
     }
   }
 
+  /**
+   * Menghitung preview denda sebelum pengembalian disetujui.
+   * @param {import('express').Request} req - Express Request object (params: id, body: kondisi_buku, excluded_dates)
+   * @param {import('express').Response} res - Express Response object
+   * @returns {Promise<import('express').Response>} JSON response
+   */
   static async calculateFinePreview(req, res) {
     try {
       const { id } = req.params;
@@ -219,6 +276,12 @@ class TransaksiController {
     }
   }
 
+  /**
+   * Menyetujui pengembalian buku dan mencatat denda jika ada.
+   * @param {import('express').Request} req - Express Request object (params: id, body: kondisi_buku, excluded_dates)
+   * @param {import('express').Response} res - Express Response object
+   * @returns {Promise<import('express').Response>} JSON response
+   */
   static async approvePengembalian(req, res) {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -259,6 +322,12 @@ class TransaksiController {
     }
   }
 
+  /**
+   * Menolak permohonan pengembalian buku (misal: buku fisik belum diserahkan).
+   * @param {import('express').Request} req - Express Request object (params: id, body: rejection_reason)
+   * @param {import('express').Response} res - Express Response object
+   * @returns {Promise<import('express').Response>} JSON response
+   */
   static async rejectPengembalian(req, res) {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -294,6 +363,12 @@ class TransaksiController {
 
   // ── Payment ────────────────────────────────────────────────
 
+  /**
+   * Memproses pembayaran denda untuk satu transaksi.
+   * @param {import('express').Request} req - Express Request object (params: id, body: jumlah_bayar)
+   * @param {import('express').Response} res - Express Response object
+   * @returns {Promise<import('express').Response>} JSON response
+   */
   static async processPayment(req, res) {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -331,6 +406,12 @@ class TransaksiController {
     }
   }
 
+  /**
+   * Memproses pembayaran denda untuk beberapa transaksi sekaligus (Siswa yang sama).
+   * @param {import('express').Request} req - Express Request object (body: transaksi_ids[], jumlah_bayar, user_id)
+   * @param {import('express').Response} res - Express Response object
+   * @returns {Promise<import('express').Response>} JSON response
+   */
   static async bulkProcessPayment(req, res) {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -368,6 +449,12 @@ class TransaksiController {
 
   // ── Perpanjangan ───────────────────────────────────────────
 
+  /**
+   * Mengajukan perpanjangan masa pinjam buku oleh user.
+   * @param {import('express').Request} req - Express Request object (params: id)
+   * @param {import('express').Response} res - Express Response object
+   * @returns {Promise<import('express').Response>} JSON response
+   */
   static async requestPerpanjangan(req, res) {
     try {
       const { id } = req.params;
@@ -398,6 +485,12 @@ class TransaksiController {
     }
   }
 
+  /**
+   * Menyetujui perpanjangan masa pinjam oleh admin.
+   * @param {import('express').Request} req - Express Request object (params: id)
+   * @param {import('express').Response} res - Express Response object
+   * @returns {Promise<import('express').Response>} JSON response
+   */
   static async approvePerpanjangan(req, res) {
     try {
       const { id } = req.params;
@@ -432,6 +525,12 @@ class TransaksiController {
     }
   }
 
+  /**
+   * Menolak permohonan perpanjangan masa pinjam oleh admin.
+   * @param {import('express').Request} req - Express Request object (params: id, body: rejection_reason)
+   * @param {import('express').Response} res - Express Response object
+   * @returns {Promise<import('express').Response>} JSON response
+   */
   static async rejectPerpanjangan(req, res) {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -468,6 +567,12 @@ class TransaksiController {
 
   // ── Return Lost ────────────────────────────────────────────
 
+  /**
+   * Mengatur status pengembalian untuk buku yang sebelumnya dilaporkan hilang.
+   * @param {import('express').Request} req - Express Request object (params: id, body: kondisi_buku)
+   * @param {import('express').Response} res - Express Response object
+   * @returns {Promise<import('express').Response>} JSON response
+   */
   static async returnLost(req, res) {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {

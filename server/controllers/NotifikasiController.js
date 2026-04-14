@@ -1,6 +1,15 @@
 import NotifikasiService from '../services/NotifikasiService.js';
 
+/**
+ * Controller untuk mengelola notifikasi pengguna.
+ */
 class NotifikasiController {
+  /**
+   * Mengambil semua notifikasi yang belum dibaca untuk pengguna yang sedang login.
+   * @param {import('express').Request} req - Express Request object
+   * @param {import('express').Response} res - Express Response object
+   * @returns {Promise<import('express').Response>} JSON response
+   */
   static async getUnread(req, res) {
     try {
       const result = await NotifikasiService.getUnread(req.user.id);
@@ -16,6 +25,12 @@ class NotifikasiController {
     }
   }
 
+  /**
+   * Menandai satu notifikasi sebagai sudah dibaca.
+   * @param {import('express').Request} req - Express Request object (params: id)
+   * @param {import('express').Response} res - Express Response object
+   * @returns {Promise<import('express').Response>} JSON response
+   */
   static async markRead(req, res) {
     try {
       await NotifikasiService.markRead(req.params.id, req.user.id);
@@ -27,6 +42,12 @@ class NotifikasiController {
     }
   }
 
+  /**
+   * Menandai semua notifikasi pengguna sebagai sudah dibaca.
+   * @param {import('express').Request} req - Express Request object
+   * @param {import('express').Response} res - Express Response object
+   * @returns {Promise<import('express').Response>} JSON response
+   */
   static async markAllRead(req, res) {
     try {
       await NotifikasiService.markAllRead(req.user.id);

@@ -8,7 +8,16 @@ export const validateKategori = [
   body('deskripsi').optional().isString(),
 ];
 
+/**
+ * Controller untuk mengelola kategori buku (CRUD).
+ */
 class KategoriController {
+  /**
+   * Mengambil semua daftar kategori buku.
+   * @param {import('express').Request} req - Express Request object
+   * @param {import('express').Response} res - Express Response object
+   * @returns {Promise<import('express').Response>} JSON response
+   */
   static async getAll(req, res) {
     try {
       const result = await KategoriService.getAll(req.query);
@@ -25,6 +34,12 @@ class KategoriController {
     }
   }
 
+  /**
+   * Mengambil satu data kategori berdasarkan ID.
+   * @param {import('express').Request} req - Express Request object (params: id)
+   * @param {import('express').Response} res - Express Response object
+   * @returns {Promise<import('express').Response>} JSON response
+   */
   static async getById(req, res) {
     try {
       const kategori = await KategoriService.getById(req.params.id);
@@ -36,6 +51,12 @@ class KategoriController {
     }
   }
 
+  /**
+   * Menambahkan kategori buku baru ke sistem.
+   * @param {import('express').Request} req - Express Request object (body: nama, deskripsi)
+   * @param {import('express').Response} res - Express Response object
+   * @returns {Promise<import('express').Response>} JSON response
+   */
   static async create(req, res) {
     try {
       const errors = validationResult(req);
@@ -56,6 +77,12 @@ class KategoriController {
     }
   }
 
+  /**
+   * Memperbarui data kategori berdasarkan ID.
+   * @param {import('express').Request} req - Express Request object (params: id, body: nama, deskripsi)
+   * @param {import('express').Response} res - Express Response object
+   * @returns {Promise<import('express').Response>} JSON response
+   */
   static async update(req, res) {
     try {
       const errors = validationResult(req);
@@ -76,6 +103,12 @@ class KategoriController {
     }
   }
 
+  /**
+   * Menghapus kategori buku berdasarkan ID.
+   * @param {import('express').Request} req - Express Request object (params: id)
+   * @param {import('express').Response} res - Express Response object
+   * @returns {Promise<import('express').Response>} JSON response
+   */
   static async delete(req, res) {
     try {
       await KategoriService.delete(req.params.id);

@@ -14,7 +14,16 @@ export const validateBuku = [
   body('deskripsi').optional().isString(),
 ];
 
+/**
+ * Controller untuk mengelola data buku (CRUD).
+ */
 class BukuController {
+  /**
+   * Mengambil semua daftar buku berdasarkan kriteria pencarian dan pagination.
+   * @param {import('express').Request} req - Express Request object (query: search, kategori, limit, offset, availableOnly)
+   * @param {import('express').Response} res - Express Response object
+   * @returns {Promise<import('express').Response>} JSON response
+   */
   static async getAll(req, res) {
     try {
       const result = await BukuService.getAll(req.query);
@@ -31,6 +40,12 @@ class BukuController {
     }
   }
 
+  /**
+   * Mengambil satu data buku berdasarkan ID.
+   * @param {import('express').Request} req - Express Request object (params: id)
+   * @param {import('express').Response} res - Express Response object
+   * @returns {Promise<import('express').Response>} JSON response
+   */
   static async getById(req, res) {
     try {
       const buku = await BukuService.getById(req.params.id);
@@ -42,6 +57,12 @@ class BukuController {
     }
   }
 
+  /**
+   * Menambahkan buku baru ke sistem (termasuk upload sampul).
+   * @param {import('express').Request} req - Express Request object (body: data buku, file: sampul)
+   * @param {import('express').Response} res - Express Response object
+   * @returns {Promise<import('express').Response>} JSON response
+   */
   static async create(req, res) {
     try {
       const errors = validationResult(req);
@@ -67,6 +88,12 @@ class BukuController {
     }
   }
 
+  /**
+   * Memperbarui data buku berdasarkan ID.
+   * @param {import('express').Request} req - Express Request object (params: id, body: data buku, file: sampul)
+   * @param {import('express').Response} res - Express Response object
+   * @returns {Promise<import('express').Response>} JSON response
+   */
   static async update(req, res) {
     try {
       const errors = validationResult(req);
@@ -92,6 +119,12 @@ class BukuController {
     }
   }
 
+  /**
+   * Menghapus buku dari sistem berdasarkan ID.
+   * @param {import('express').Request} req - Express Request object (params: id)
+   * @param {import('express').Response} res - Express Response object
+   * @returns {Promise<import('express').Response>} JSON response
+   */
   static async delete(req, res) {
     try {
       await BukuService.delete(req.params.id);

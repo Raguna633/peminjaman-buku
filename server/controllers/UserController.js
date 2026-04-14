@@ -25,7 +25,16 @@ export const validateUserCreate = [
   body('class').optional({ checkFalsy: true }).isString(),
 ];
 
+/**
+ * Controller untuk mengelola data pengguna (Admin & Siswa).
+ */
 class UserController {
+  /**
+   * Mengambil semua daftar pengguna dengan filter opsional.
+   * @param {import('express').Request} req - Express Request object (query: search, role, status, page)
+   * @param {import('express').Response} res - Express Response object
+   * @returns {Promise<import('express').Response>} JSON response
+   */
   static async getAll(req, res) {
     try {
       const result = await UserService.getAll(req.query);
@@ -42,6 +51,12 @@ class UserController {
     }
   }
 
+  /**
+   * Mengambil data satu pengguna berdasarkan ID.
+   * @param {import('express').Request} req - Express Request object (params: id)
+   * @param {import('express').Response} res - Express Response object
+   * @returns {Promise<import('express').Response>} JSON response
+   */
   static async getById(req, res) {
     try {
       const user = await UserService.getById(req.params.id);
@@ -53,6 +68,12 @@ class UserController {
     }
   }
 
+  /**
+   * Membuat pengguna baru (Admin memicu pendaftaran).
+   * @param {import('express').Request} req - Express Request object (body: data user)
+   * @param {import('express').Response} res - Express Response object
+   * @returns {Promise<import('express').Response>} JSON response
+   */
   static async create(req, res) {
     try {
       const errors = validationResult(req);
@@ -77,6 +98,12 @@ class UserController {
     }
   }
 
+  /**
+   * Memperbarui data pengguna berdasarkan ID.
+   * @param {import('express').Request} req - Express Request object (params: id, body: data user)
+   * @param {import('express').Response} res - Express Response object
+   * @returns {Promise<import('express').Response>} JSON response
+   */
   static async update(req, res) {
     try {
       const errors = validationResult(req);
@@ -101,6 +128,12 @@ class UserController {
     }
   }
 
+  /**
+   * Menghapus pengguna dari sistem berdasarkan ID.
+   * @param {import('express').Request} req - Express Request object (params: id)
+   * @param {import('express').Response} res - Express Response object
+   * @returns {Promise<import('express').Response>} JSON response
+   */
   static async delete(req, res) {
     try {
       await UserService.delete(req.params.id, req.user?.id);
@@ -112,6 +145,12 @@ class UserController {
     }
   }
 
+  /**
+   * Membuat banyak pengguna sekaligus melalui proses import.
+   * @param {import('express').Request} req - Express Request object (body: users[])
+   * @param {import('express').Response} res - Express Response object
+   * @returns {Promise<import('express').Response>} JSON response
+   */
   static async bulkCreate(req, res) {
     try {
       const result = await UserService.bulkCreate(req.body.users);

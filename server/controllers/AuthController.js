@@ -2,7 +2,16 @@ import 'dotenv/config';
 import { validationResult } from 'express-validator';
 import AuthService from '../services/AuthService.js';
 
+/**
+ * Controller untuk menangani proses autentikasi (Registrasi, Login, Profil).
+ */
 class AuthController {
+  /**
+   * Menangani pendaftaran/registrasi siswa baru.
+   * @param {import('express').Request} req - Express Request object
+   * @param {import('express').Response} res - Express Response object
+   * @returns {Promise<import('express').Response>} JSON response
+   */
   static async register(req, res) {
     try {
       const errors = validationResult(req);
@@ -41,6 +50,12 @@ class AuthController {
     }
   }
 
+  /**
+   * Menangani proses login pengguna.
+   * @param {import('express').Request} req - Express Request object
+   * @param {import('express').Response} res - Express Response object
+   * @returns {Promise<import('express').Response>} JSON response
+   */
   static async login(req, res) {
     try {
       const errors = validationResult(req);
@@ -73,6 +88,12 @@ class AuthController {
     }
   }
 
+  /**
+   * Mengambil data profil pengguna yang sedang login.
+   * @param {import('express').Request} req - Express Request object
+   * @param {import('express').Response} res - Express Response object
+   * @returns {Promise<import('express').Response>} JSON response
+   */
   static async getProfile(req, res) {
     const profileData = AuthService.getProfile(req.user);
     return res.status(200).json({
@@ -81,6 +102,12 @@ class AuthController {
     });
   }
 
+  /**
+   * Mengubah status berjaga (duty status) admin.
+   * @param {import('express').Request} req - Express Request object
+   * @param {import('express').Response} res - Express Response object
+   * @returns {Promise<import('express').Response>} JSON response
+   */
   static async toggleDutyStatus(req, res) {
     try {
       const result = await AuthService.toggleDutyStatus(req.user);
@@ -114,6 +141,12 @@ class AuthController {
     }
   }
 
+  /**
+   * Memeriksa apakah ada admin yang sedang berjaga.
+   * @param {import('express').Request} _req - Express Request object (tidak digunakan)
+   * @param {import('express').Response} res - Express Response object
+   * @returns {Promise<import('express').Response>} JSON response
+   */
   static async checkDuty(_req, res) {
     try {
       const result = await AuthService.checkDuty();
