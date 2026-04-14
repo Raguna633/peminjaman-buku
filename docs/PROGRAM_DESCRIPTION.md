@@ -137,56 +137,64 @@ Sistem menggunakan arsitektur **Client–Server** dengan komunikasi REST API dan
 
 ### 6.1 Alur Login
 
-```text
-Pengguna buka aplikasi → Halaman Login
-Masukkan username + password → Validasi server
-Gagal → Pesan error → Kembali ke Login
-Berhasil → JWT token disimpan → Redirect ke Dashboard sesuai role
+```mermaid
+graph TD
+    A["Buka Aplikasi"] --> B["Halaman Login"]
+    B --> C{"Input Username & Password"}
+    C --> D["Validasi Server"]
+    D -->|Gagal| E["Pesan Error"]
+    E --> B
+    D -->|Berhasil| F["Simpan JWT Token"]
+    F --> G["Redirect ke Dashboard sesuai role"]
 ```
 
 ### 6.2 Alur Peminjaman Buku (Siswa)
 
-```text
-Siswa pilih buku → Klik "Pinjam"
-Sistem cek ada admin berjaga (is_on_duty = true)
-  Tidak ada → Tolak dengan pesan informatif
-  Ada → Cek kuota siswa (< max_borrow_limit)
-    Kuota penuh → Tolak
-    Kuota tersedia → Cek buku yang sama belum ada transaksi aktif
-      Ada → Tolak (antisipasi duplikat peminjaman)
-      Tidak ada → Cek stok buku > 0
-        Stok 0 → Tolak
-        Stok tersedia → Buat transaksi [pending]
-          → Kirim notif real-time ke admin (Socket.IO)
-          → Tampilkan modal status menunggu persetujuan
-          → Admin approve → Status [approved], stok -1, kuota siswa -1
-          → Admin reject → Status [rejected], notif ke siswa
+```mermaid
+graph TD
+    A["Siswa Pilih Buku"] --> B["Klik 'Pinjam'"]
+    B --> C{"Admin Berjaga?"}
+    C -->|Tidak| D["Tolak: Admin tidak bertugas"]
+    C -->|Ya| E{"Kuota Tersedia? <br/> &lt; max_borrow_limit"}
+    E -->|Tidak| F["Tolak: Kuota penuh"]
+    E -->|Ya| G{"Buku sedang dipinjam?"}
+    G -->|Ya| H["Tolak: Transaksi duplikat"]
+    G -->|Tidak| I{"Stok > 0?"}
+    I -->|Tidak| J["Tolak: Stok habis"]
+    I -->|Ya| K["Buat Transaksi [pending]"]
+    K --> L["Kirim Notif Real-time ke Admin"]
+    L --> M["Menunggu Persetujuan Admin"]
+    M --> N{"Keputusan Admin"}
+    N -->|Approve| O["Status [approved], Stok -1, Kuota Siswa -1"]
+    N -->|Reject| P["Status [rejected], Notif ke Siswa"]
 ```
 
 ### 6.3 Alur Pengembalian & Denda (Admin)
 
-```text
-Siswa request pengembalian → Status [return_pending]
-Admin buka detail transaksi
-Admin pilih kondisi buku (baik/rusak_ringan/rusak_sedang/rusak_parah/hilang)
-Admin pilih tanggal pengecualian denda (hari libur, dll.)
-Admin klik "Kalkulasikan Denda" → Sistem hitung:
-  - Denda keterlambatan (per hari atau flat, maks max_denda_amount)
-  - Denda kerusakan (sesuai kondisi)
-  - Tidak dihitung pada tanggal yang dikecualikan
-Admin & siswa melihat total denda di layar masing-masing (real-time)
-Jika denda > 0 → Alur Pembayaran Denda
-Admin approve pengembalian → Status [returned], stok +1, kuota siswa +1
+```mermaid
+graph TD
+    A["Siswa Request Pengembalian"] --> B["Status [return_pending]"]
+    B --> C["Admin Buka Detail Transaksi"]
+    C --> D["Admin Pilih Kondisi Buku"]
+    D --> E["Admin Pilih Tanggal Pengecualian"]
+    E --> F["Kalkulasikan Denda"]
+    F --> G["Tampilkan Total Denda Real-time"]
+    G --> H{"Denda > 0?"}
+    H -->|Ya| I["Alur Pembayaran Denda"]
+    H -->|Tidak| J["Admin Approve Pengembalian"]
+    I --> J
+    J --> K["Status [returned], Stok +1, Kuota Siswa +1"]
 ```
 
 ### 6.4 Alur Pembayaran Denda
 
-```text
-Admin input jumlah uang diterima dari siswa
-Sistem kalkulasi kembalian / sisa utang
-Klik "Bayar":
-  - Lunas (bayar pas/lebih) → denda_dibayar = denda, status selesai
-  - Kurang / Bayar Nanti → sisa denda masuk ke akun siswa (denda belum lunas)
+```mermaid
+graph TD
+    A["Admin Input Jumlah Uang"] --> B["Sistem Kalkulasi Kembalian/Sisa"]
+    B --> C["Klik 'Bayar'"]
+    C --> D{"Kondisi Pembayaran"}
+    D -->|"Lunas/Lebih"| E["Denda_dibayar = Denda, Status Selesai"]
+    D -->|"Kurang / Bayar Nanti"| F["Sisa Denda masuk Akun Siswa"]
 ```
 
 ### 6.5 Kebijakan Admin Berjaga
