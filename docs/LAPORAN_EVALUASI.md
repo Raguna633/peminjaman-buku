@@ -68,6 +68,9 @@ Unit test telah diperluas untuk mencakup seluruh lapisan aplikasi (`Controllers`
 7. **Alur Bisnis Penonaktifan Akun Siswa yang Telah Lulus**
    - **Status:** Belum Ada. Aplikasi saat ini hanya memungkinkan admin untuk menonaktifkan akun siswa secara manual satu persatu.
 
+8. **Fitur Bulk Approve dan Reject Transaksi**
+   - **Status:** Batal implementasi.
+
 ---
 
 ### 5. Kesimpulan
