@@ -5,6 +5,7 @@
   "main": "app.js",
   "scripts": {
     "test": "vitest",
+    "coverage": "vitest --coverage",
     "dev": "cross-env NODE_ENV=development nodemon app",
     "prod": "cross-env NODE_ENV=development pm2 start app.js --name peminjaman-buku --watch && npx pm2 monit",
     "monitor": "npx pm2 monit",
@@ -36,6 +37,7 @@
     "swagger-ui-express": "^5.0.1"
   },
   "devDependencies": {
+    "@vitest/coverage-v8": "^4.0.18",
     "better-sqlite3": "^11.7.0",
     "cross-env": "^10.1.0",
     "nodemon": "^3.1.11",
