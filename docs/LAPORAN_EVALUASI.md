@@ -63,13 +63,16 @@ Unit test telah diperluas untuk mencakup seluruh lapisan aplikasi (`Controllers`
    - **Status:** Belum teratasi sepenuhnya. Admin dapat mengklasifikasikan kondisi buku saat proses pengembalian, dengan pilihan: **Baik, Cukup, Rusak Ringan, Rusak Sedang, Rusak Parah, Hilang**. Namun, sistem belum dapat membedakan antara buku yang rusak ringan, sedang, parah dan hilang secara persatu bukunya.
 
 6. **Sistem Pengecualian Hari Denda**
-   - **Status:** Belum ditest secara aktual. Sistem telah mengimplementasikan fitur pengecualian hari denda, di mana admin dapat menambahkan tanggal pengecualian denda secara dinamis saat proses approval pengembalian, atau melalui halaman settings.
+   - **Status:** Tested secara aktual. Sistem telah mengimplementasikan fitur pengecualian hari denda, di mana admin dapat menambahkan tanggal pengecualian denda secara dinamis saat proses approval pengembalian, atau melalui halaman settings.
 
 7. **Alur Bisnis Penonaktifan Akun Siswa yang Telah Lulus**
    - **Status:** Belum Ada. Aplikasi saat ini hanya memungkinkan admin untuk menonaktifkan akun siswa secara manual satu persatu.
 
 8. **Fitur Bulk Approve dan Reject Transaksi**
    - **Status:** Batal implementasi.
+
+9. **Fitur Notifikasi Real Time dari WebSocket**
+   - **Status:** Terimplementasi 90%. Masih ada beberapa operasi aktifitas dalam aplikasi yang tidak mengirim notifikasi antara Admin dengan User/Siswa. 
 
 ---
 

@@ -17,8 +17,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { FileText, BookOpen, Users, TrendingUp, DollarSign, Download } from "lucide-react";
+import { FileText, BookOpen, Users, TrendingUp, DollarSign, Download, FileDown } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 const AdminReports = () => {
   const { books, members, transactions, getStatistics, getBookById, getMemberById, categories } = useLibrary();
@@ -129,6 +131,68 @@ const AdminReports = () => {
     document.body.removeChild(link);
   };
 
+  const formatDate = (dateString) => {
+    if (!dateString || dateString === "-") return "-";
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return dateString;
+      return new Intl.DateTimeFormat('id-ID', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      }).format(date);
+    } catch (e) {
+      return dateString;
+    }
+  };
+
+  // Export PDF
+  const handleExportPDF = () => {
+    const doc = new jsPDF();
+    const tableColumn = ["ID", "Buku", "Siswa", "Status", "Pinjam", "Kembali", "Denda"];
+    const tableRows = [];
+
+    transactions.forEach(t => {
+      const bookTitle = getBookById(t.buku_id)?.judul || "-";
+      const memberName = getMemberById(t.user_id)?.nama_lengkap || "-";
+      const transactionData = [
+        t.id,
+        bookTitle,
+        memberName,
+        statusMap[t.status] || t.status,
+        formatDate(t.tanggal_pinjam || t.created_at),
+        formatDate(t.tanggal_kembali),
+        t.denda ? `Rp ${t.denda.toLocaleString()}` : "0"
+      ];
+      tableRows.push(transactionData);
+    });
+
+    doc.setFontSize(18);
+    doc.text("Laporan Transaksi Perpustakaan", 14, 22);
+    doc.setFontSize(11);
+    doc.setTextColor(100);
+    doc.text(`Dicetak pada: ${new Date().toLocaleString('id-ID')}`, 14, 30);
+    
+    autoTable(doc, {
+      head: [tableColumn],
+      body: tableRows,
+      startY: 35,
+      theme: 'grid',
+      headStyles: { fillColor: [29, 78, 216] }, // primary blue
+      styles: { fontSize: 8, cellPadding: 2 },
+      columnStyles: {
+        0: { cellWidth: 10 },
+        1: { cellWidth: 45 }, // Buku
+        2: { cellWidth: 35 }, // Siswa
+        4: { cellWidth: 22 }, // Pinjam
+        5: { cellWidth: 22 }, // Kembali
+        6: { cellWidth: 25 }, // Denda
+      }
+    });
+
+    doc.save(`laporan_transaksi_${new Date().getTime()}.pdf`);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -138,10 +202,16 @@ const AdminReports = () => {
             Rekap statistik dan laporan aktivitas perpustakaan
           </p>
         </div>
-        <Button onClick={handleExportCSV}>
-          <Download className="mr-2 h-4 w-4" />
-          Export Transaksi (CSV)
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" onClick={handleExportCSV}>
+            <Download className="mr-2 h-4 w-4" />
+            CSV
+          </Button>
+          <Button onClick={handleExportPDF}>
+            <FileDown className="mr-2 h-4 w-4" />
+            PDF
+          </Button>
+        </div>
       </div>
 
       {/* Ringkasan Statistik */}

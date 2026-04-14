@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useLibrary } from "../../context/LibraryContext";
+import { useSocket } from "../../context/SocketContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -59,6 +60,7 @@ const AdminTransactions = () => {
     bulkProcessPayment
   } = useLibrary();
   const { toast } = useToast();
+  const { on } = useSocket();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatusGlobal, setFilterStatusGlobal] = useState("all");
@@ -83,8 +85,9 @@ const AdminTransactions = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [bulkPayGroup, setBulkPayGroup] = useState(null);
   const [selectedBulkFines, setSelectedBulkFines] = useState([]);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const loadTransactions = async () => {
+  const loadTransactions = useCallback(async () => {
     if (activeTab === "unpaid") return; // Special handling for unpaid
 
     setIsLoadingLocal(true);
@@ -110,7 +113,7 @@ const AdminTransactions = () => {
       setTotalItems(res.totalItems || 0);
     }
     setIsLoadingLocal(false);
-  };
+  }, [activeTab, limit, currentPage, searchQuery, filterStatusGlobal, fetchTransactions]);
 
   useEffect(() => {
     loadTransactions();
@@ -119,6 +122,27 @@ const AdminTransactions = () => {
   useEffect(() => {
     setCurrentPage(1);
   }, [activeTab, searchQuery, filterStatusGlobal]);
+
+  // Real-time refresh when new requests arrive
+  useEffect(() => {
+    if (!on) return;
+
+    const refreshFeed = () => {
+      // Small delay to ensure DB is updated (though socket is usually sent after DB)
+      // and to avoid layout shift immediately if admin is typing
+      loadTransactions();
+    };
+
+    const unsubBorrow = on("peminjaman:request", refreshFeed);
+    const unsubReturn = on("pengembalian:request", refreshFeed);
+    const unsubExtend = on("perpanjangan:request", refreshFeed);
+
+    return () => {
+      unsubBorrow();
+      unsubReturn();
+      unsubExtend();
+    };
+  }, [on, loadTransactions]);
 
   const kondisiOptions = [
     { value: "baik", label: "Baik" },
@@ -765,7 +789,11 @@ const AdminTransactions = () => {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Batal</AlertDialogCancel>
+            {((activeDialog === 'approve-kembali' || activeDialog === 'return-lost') && returnStep === 2) ? (
+              <Button variant="outline" onClick={() => setReturnStep(1)}>Kembali</Button>
+            ) : (
+              <AlertDialogCancel>Batal</AlertDialogCancel>
+            )}
             
             {(activeDialog === 'approve-kembali' || activeDialog === 'return-lost') && returnStep === 1 && (
                <Button onClick={handleCalculateFinePreview} disabled={isSubmitting}>

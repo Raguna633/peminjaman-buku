@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSocket } from "../context/SocketContext";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,6 +17,12 @@ const NotificationInbox = () => {
     markAllNotificationsRead,
   } = useSocket();
   const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    const handleToggle = () => setIsOpen((prev) => !prev);
+    window.addEventListener("toggle-notifications", handleToggle);
+    return () => window.removeEventListener("toggle-notifications", handleToggle);
+  }, []);
 
   const formatTime = (dateStr) => {
     if (!dateStr) return "";
@@ -61,9 +67,9 @@ const NotificationInbox = () => {
             </Button>
           )}
         </div>
-        <ScrollArea className="max-h-[300px]">
+        <ScrollArea className="h-[350px] w-full">
           {unreadNotifications.length === 0 ? (
-            <div className="p-8 text-center text-sm text-muted-foreground">
+            <div className="h-full flex flex-col items-center justify-center p-8 text-center text-sm text-muted-foreground">
               <Bell className="h-8 w-8 mx-auto mb-2 opacity-30" />
               Tidak ada notifikasi baru
             </div>

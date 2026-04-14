@@ -4,9 +4,9 @@
   },
   "scripts": {
     "dev": "pm2 start ecosystem.config.js --dev",
-    "start": "pm2 start ecosystem.config.js",
+    "start": "pm2 start ecosystem.config.js && pm2 monit",
     "stop": "pm2 stop all",
-    "restart": "pm2 restart all",
+    "restart": "pm2 restart all && pm2 monit",
     "monitor": "pm2 monit"
   }
 }

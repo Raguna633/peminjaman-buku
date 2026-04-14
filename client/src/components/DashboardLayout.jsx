@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useSocket } from "../context/SocketContext";
@@ -27,6 +28,13 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import {
   BookOpen,
   Home,
   BookPlus,
@@ -41,6 +49,7 @@ import {
   Settings,
   Tag,
   Shield,
+  Keyboard,
 } from "lucide-react";
 
 const adminMenuItems = [
@@ -64,14 +73,29 @@ const userMenuItems = [
 const SidebarNav = ({ isAdmin }) => {
   const location = useLocation();
   const { pendingCounts } = useSocket();
+  const { transactions } = useLibrary();
   const menuItems = isAdmin ? adminMenuItems : userMenuItems;
 
   return (
     <SidebarMenu>
       {menuItems.map((item) => {
         const isActive = location.pathname === item.url;
-        const showBadge =
-          isAdmin && item.url === "/admin/transactions" && pendingCounts.total > 0;
+        
+        let showBadge = false;
+        let badgeCount = 0;
+
+        if (isAdmin && item.url === "/admin/transactions" && pendingCounts.total > 0) {
+          showBadge = true;
+          badgeCount = pendingCounts.total;
+        }
+
+        if (!isAdmin && item.url === "/user/return") {
+          const overdueCount = transactions.filter(t => t.status === "overdue").length;
+          if (overdueCount > 0) {
+            showBadge = true;
+            badgeCount = overdueCount;
+          }
+        }
 
         return (
           <SidebarMenuItem key={item.title}>
@@ -81,7 +105,7 @@ const SidebarNav = ({ isAdmin }) => {
                 <span className="flex-1">{item.title}</span>
                 {showBadge && (
                   <Badge variant="destructive" className="h-5 px-1.5 text-xs">
-                    {pendingCounts.total}
+                    {badgeCount}
                   </Badge>
                 )}
               </Link>
@@ -207,6 +231,85 @@ const AppSidebar = () => {
 };
 
 const DashboardLayout = ({ children }) => {
+  const { user, logout } = useAuth();
+  const { on } = useSocket();
+  const { toast } = useToast();
+  const navigate = useNavigate();
+  const isAdmin = user?.role === "admin";
+  const [showShortcutHelp, setShowShortcutHelp] = useState(false);
+
+  // Listen for admin real-time notifications
+  useEffect(() => {
+    if (!isAdmin || !on) return;
+
+    const showRequestToast = (title, description) => {
+      toast({
+        title,
+        description,
+        action: (
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => navigate("/admin/transactions")}
+          >
+            Lihat
+          </Button>
+        ),
+      });
+    };
+
+    const unsubBorrow = on("peminjaman:request", (data) => {
+      showRequestToast(
+        "📚 Permohonan Peminjaman",
+        `${data.siswa.nama} ingin meminjam "${data.buku.judul}"`
+      );
+    });
+
+    const unsubReturn = on("pengembalian:request", (data) => {
+      showRequestToast(
+        "🔄 Permohonan Pengembalian",
+        `${data.siswa.nama} ingin mengembalikan "${data.buku.judul}"`
+      );
+    });
+
+    const unsubExtend = on("perpanjangan:request", (data) => {
+      showRequestToast(
+        "📅 Permohonan Perpanjangan",
+        `${data.siswa.nama} mengajukan perpanjangan "${data.buku.judul}"`
+      );
+    });
+
+    return () => {
+      unsubBorrow();
+      unsubReturn();
+      unsubExtend();
+    };
+  }, [isAdmin, on, toast, navigate]);
+
+  // Keyboard Shortcuts for Admin
+  useEffect(() => {
+    if (!isAdmin) return;
+
+    const handleKeyDown = (e) => {
+      if (e.altKey) {
+        switch (e.key.toLowerCase()) {
+          case "1": e.preventDefault(); navigate("/admin"); break;
+          case "2": e.preventDefault(); navigate("/admin/books"); break;
+          case "3": e.preventDefault(); navigate("/admin/transactions"); break;
+          case "4": e.preventDefault(); navigate("/admin/members"); break;
+          case "5": e.preventDefault(); navigate("/admin/settings"); break;
+          case "n": e.preventDefault(); window.dispatchEvent(new CustomEvent("toggle-notifications")); break;
+          case "h": e.preventDefault(); setShowShortcutHelp((prev) => !prev); break;
+          case "q": e.preventDefault(); if (confirm("Apakah Anda yakin ingin logout?")) logout(); break;
+          default: break;
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isAdmin, navigate, logout]);
+
   return (
     <SidebarProvider>
       <AppSidebar />
@@ -214,6 +317,9 @@ const DashboardLayout = ({ children }) => {
         <header className="h-14 border-b bg-card flex items-center px-4 gap-4 sticky top-0 z-20">
           <SidebarTrigger />
           <div className="flex-1" />
+          <Button variant="ghost" size="icon" onClick={() => setShowShortcutHelp(true)} title="Shortcut Keyboard (Alt+H)">
+            <Keyboard className="h-4 w-4" />
+          </Button>
           <NotificationInbox />
         </header>
         <div className="flex-1 min-w-0 overflow-auto">
@@ -223,6 +329,37 @@ const DashboardLayout = ({ children }) => {
           </div>
         </div>
       </SidebarInset>
+
+      <Dialog open={showShortcutHelp} onOpenChange={setShowShortcutHelp}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Keyboard className="h-5 w-5" />
+              Shortcut Keyboard Admin
+            </DialogTitle>
+            <DialogDescription>Gunakan kombinasi tombol berikut untuk mempercepat pengoperasian aplikasi.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-3">
+                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Navigasi</h4>
+                {["Dashboard", "Kelola Buku", "Transaksi", "Anggota", "Pengaturan"].map((item, i) => (
+                  <div key={item} className="flex justify-between items-center text-sm">
+                    <span>{item}</span>
+                    <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">Alt + {i + 1}</kbd>
+                  </div>
+                ))}
+              </div>
+              <div className="space-y-3">
+                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Aksi</h4>
+                <div className="flex justify-between items-center text-sm"><span>Notifikasi</span><kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">Alt + N</kbd></div>
+                <div className="flex justify-between items-center text-sm"><span>Bantuan</span><kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">Alt + H</kbd></div>
+                <div className="flex justify-between items-center text-sm"><span>Logout</span><kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">Alt + Q</kbd></div>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </SidebarProvider>
   );
 };
