@@ -3,10 +3,10 @@ node_modules/
 jspm_packages/
 
 # Production build artifacts
-/dist
-/build
-/client/build
-/server/dist
+dist/
+buil
+client/build/
+server/dist/
 
 # Environment variables (Crucial for security)
 .env
